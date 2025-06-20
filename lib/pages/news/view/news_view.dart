@@ -48,14 +48,38 @@ class NewsView extends BaseView<NewsViewModel> {
           );
         }
 
-        return RefreshIndicator(
+        return VNLRefreshTrigger(
           onRefresh: viewModel.refreshNews,
-          child: Column(
-            children: [
-              _buildCategoryTabs(context),
-              Expanded(
-                child: _buildNewsList(context),
+          child: CustomScrollView(
+            slivers: [
+              // Breaking News Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    'Breaking News',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: VNLTheme.of(context).colorScheme.foreground,
+                    ),
+                  ),
+                ),
               ),
+
+              // Featured News
+              if (viewModel.newsList.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: _buildFeaturedNews(context, viewModel.newsList.first),
+                ),
+
+              // Category Tabs
+              SliverToBoxAdapter(
+                child: _buildCategoryTabs(context),
+              ),
+
+              // News List
+              _buildNewsListSliver(context),
             ],
           ),
         );
@@ -63,84 +87,31 @@ class NewsView extends BaseView<NewsViewModel> {
     );
   }
 
-  Widget _buildCategoryTabs(BuildContext context) {
+  Widget _buildFeaturedNews(BuildContext context, NewsModel news) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: viewModel.categories.map((category) {
-            final isSelected = category.id == viewModel.selectedCategoryId;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: isSelected
-                  ? VNLButton.primary(
-                      onPressed: () => viewModel.selectCategory(category.id),
-                      child: Text(category.name),
-                    )
-                  : VNLButton.outline(
-                      onPressed: () => viewModel.selectCategory(category.id),
-                      child: Text(category.name),
-                    ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewsList(BuildContext context) {
-    if (viewModel.newsList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.article_outlined,
-              size: 64,
-              color: VNLTheme.of(context).colorScheme.mutedForeground,
-            ),
-            const Gap(16),
-            Text(
-              'Không có tin tức nào',
-              style: TextStyle(
-                color: VNLTheme.of(context).colorScheme.mutedForeground,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: viewModel.newsList.length,
-      separatorBuilder: (context, index) => const Gap(16),
-      itemBuilder: (context, index) {
-        final news = viewModel.newsList[index];
-        return _buildNewsCard(context, news);
-      },
-    );
-  }
-
-  Widget _buildNewsCard(BuildContext context, NewsModel news) {
-    return VNLCard(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: VNLButton.ghost(
         onPressed: () => _navigateToDetail(context, news.id!),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // News image
-            if (news.thumbnail != null) ...[
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                // Background Image
+                AspectRatio(
+                  aspectRatio: 16 / 10,
                   child: Image.network(
-                    news.thumbnail!,
+                    news.thumbnail ?? 'https://via.placeholder.com/400x250',
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
@@ -157,91 +128,250 @@ class NewsView extends BaseView<NewsViewModel> {
                     },
                   ),
                 ),
-              ),
-            ],
-            
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Author and date
-                  Row(
-                    children: [
-                      if (news.author?.avatarUrl != null) ...[
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundImage: NetworkImage(news.author!.avatarUrl!),
-                          onBackgroundImageError: (exception, stackTrace) {},
-                          child: news.author?.avatarUrl == null 
-                              ? const Icon(Icons.person, size: 16)
-                              : null,
-                        ),
-                        const Gap(8),
-                      ],
-                      Expanded(
-                        child: Text(
-                          news.author?.name ?? 'Tác giả không xác định',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+
+                // Gradient Overlay
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.7),
+                        ],
                       ),
+                    ),
+                  ),
+                ),
+
+                // Content
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        _formatDate(news.dateCreated),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: VNLTheme.of(context).colorScheme.mutedForeground,
+                        news.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.3,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Gap(6),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundImage: news.author?.avatarUrl != null
+                                ? NetworkImage(news.author!.avatarUrl!)
+                                : null,
+                            child: news.author?.avatarUrl == null
+                                ? const Icon(Icons.person, size: 16)
+                                : null,
+                          ),
+                          const Gap(8),
+                          Text(
+                            news.author?.name ?? 'Tác giả không xác định',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            _formatDate(news.dateCreated),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  
-                  const Gap(12),
-                  
-                  // Title
-                  Text(
-                    news.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      height: 1.3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryTabs(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: viewModel.categories.asMap().entries.map((entry) {
+            final index = entry.key;
+            final category = entry.value;
+            final isSelected = category.id == viewModel.selectedCategoryId;
+            
+            return Padding(
+              padding: EdgeInsets.only(right: index < viewModel.categories.length - 1 ? 12 : 0),
+              child: GestureDetector(
+                onTap: () => viewModel.selectCategory(category.id),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? VNLTheme.of(context).colorScheme.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: isSelected 
+                          ? VNLTheme.of(context).colorScheme.primary
+                          : VNLTheme.of(context).colorScheme.border,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  
-                  const Gap(8),
-                  
-                  // Summary
-                  if (news.summary != null) ...[
+                  child: Text(
+                    category.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected 
+                          ? Colors.white
+                          : VNLTheme.of(context).colorScheme.foreground,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNewsListSliver(BuildContext context) {
+    if (viewModel.newsList.length <= 1) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.article_outlined,
+                  size: 64,
+                  color: VNLTheme.of(context).colorScheme.mutedForeground,
+                ),
+                const Gap(16),
+                Text(
+                  'Không có tin tức nào khác',
+                  style: TextStyle(
+                    color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Skip first news (featured news)
+    final remainingNews = viewModel.newsList.skip(1).toList();
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final news = remainingNews[index];
+          return _buildNewsListItem(context, news);
+        },
+        childCount: remainingNews.length,
+      ),
+    );
+  }
+
+  Widget _buildNewsListItem(BuildContext context, NewsModel news) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: VNLButton.ghost(
+        onPressed: () => _navigateToDetail(context, news.id!),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: VNLTheme.of(context).colorScheme.card,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: VNLTheme.of(context).colorScheme.border.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 70,
+                  height: 70,
+                  child: Image.network(
+                    news.thumbnail ?? 'https://via.placeholder.com/70x70',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: VNLTheme.of(context).colorScheme.muted,
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 24,
+                          color: VNLTheme.of(context).colorScheme.mutedForeground,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              
+              const Gap(12),
+              
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      news.summary!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: VNLTheme.of(context).colorScheme.mutedForeground,
-                        height: 1.4,
+                      news.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
                       ),
-                      maxLines: 3,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const Gap(12),
-                  ],
-                  
-                  // Footer with view count and category
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (news.category != null)
-                        VNLChip(
-                          child: Text(
-                            news.category!.name,
-                            style: const TextStyle(fontSize: 10),
+                    
+                    const Gap(6),
+                    
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          size: 14,
+                          color: VNLTheme.of(context).colorScheme.mutedForeground,
+                        ),
+                        const Gap(4),
+                        Text(
+                          _formatDate(news.dateCreated),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: VNLTheme.of(context).colorScheme.mutedForeground,
                           ),
                         ),
-                      const Spacer(),
-                      if (news.viewCount != null) ...[
+                        const Spacer(),
                         Icon(
                           Icons.visibility_outlined,
                           size: 14,
@@ -249,19 +379,19 @@ class NewsView extends BaseView<NewsViewModel> {
                         ),
                         const Gap(4),
                         Text(
-                          '${news.viewCount}',
+                          '${news.viewCount ?? 0}',
                           style: TextStyle(
                             fontSize: 12,
                             color: VNLTheme.of(context).colorScheme.mutedForeground,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
