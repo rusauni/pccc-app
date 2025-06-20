@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:vnl_common_ui/vnl_ui.dart';
 
 class HomeTab extends StatelessWidget {
@@ -12,17 +11,17 @@ class HomeTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Gap(48),
-          _buildWelcomeCard(),
+          _buildWelcomeCard(context),
           Gap(20),
-          _buildStatisticsSection(),
+          _buildStatisticsSection(context),
           Gap(20),
-          _buildRecentActivities(),
+          _buildRecentActivities(context),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeCard() {
+  Widget _buildWelcomeCard(BuildContext context) {
     return VNLCard(
       child: Padding(
         padding: EdgeInsets.all(16),
@@ -34,12 +33,9 @@ class HomeTab extends StatelessWidget {
             Text('Trước anh linh các tiền bối của lực lượng, Ban Tổ chức và đại diện các Đoàn vận động viên đã thành tâm tưởng nhớ, tôn vinh lý tưởng cao đẹp, đóng góp to lớn của các thế hệ Công an nhân dân trong sự nghiệp đấu tranh giải phóng dân tộc, xây dựng và bảo vệ Tổ quốc; đồng thời bày tỏ quyết tâm nêu cao tinh thần "Vì nước, quên thân vì dân phục vụ"')
                 .base,
             SizedBox(height: 16),
-            ElevatedButton(
+            VNLButton(
+              style: ButtonStyle.primary(),
               onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
               child: Text('Xem hướng dẫn').base,
             ),
           ],
@@ -48,7 +44,7 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildStatisticsSection() {
+  Widget _buildStatisticsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -60,15 +56,15 @@ class HomeTab extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _buildStatCard('Thiết bị', '24', Icons.devices, Colors.blue),
+              child: _buildStatCard(context, 'Thiết bị', '24', Icons.devices, VNLTheme.of(context).colorScheme.primary),
             ),
             SizedBox(width: 12),
             Expanded(
-              child: _buildStatCard('Kiểm tra', '12', Icons.check_circle, Colors.green),
+              child: _buildStatCard(context, 'Kiểm tra', '12', Icons.check_circle, VNLTheme.of(context).colorScheme.secondary),
             ),
             SizedBox(width: 12),
             Expanded(
-              child: _buildStatCard('Cảnh báo', '3', Icons.warning, Colors.orange),
+              child: _buildStatCard(context, 'Cảnh báo', '3', Icons.warning, VNLTheme.of(context).colorScheme.destructive),
             ),
           ],
         ),
@@ -76,7 +72,7 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color color) {
     return VNLCard(
       child: Padding(
         padding: EdgeInsets.all(12),
@@ -96,7 +92,7 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivities() {
+  Widget _buildRecentActivities(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -106,40 +102,65 @@ class HomeTab extends StatelessWidget {
         ),
         Gap(12),
         _buildActivityItem(
+          context,
           'Kiểm tra thiết bị chữa cháy tầng 1',
           'Hôm nay, 10:30',
           Icons.check_circle,
-          Colors.green,
+          VNLTheme.of(context).colorScheme.secondary,
         ),
         Gap(12),
         _buildActivityItem(
+          context,
           'Cập nhật quy định PCCC mới',
           'Hôm qua, 15:45',
           Icons.article,
-          Colors.blue,
+          VNLTheme.of(context).colorScheme.primary,
         ),
         Gap(12),
         _buildActivityItem(
+          context,
           'Cảnh báo thiết bị hết hạn kiểm định',
           '20/05/2025, 09:15',
           Icons.warning,
-          Colors.orange,
+          VNLTheme.of(context).colorScheme.destructive,
         ),
       ],
     );
   }
 
-  Widget _buildActivityItem(String title, String time, IconData icon, Color color) {
+  Widget _buildActivityItem(BuildContext context, String title, String time, IconData icon, Color color) {
     return VNLCard(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
-          child: Icon(icon, color: color, size: 20),
+      child: VNLButton(
+        style: ButtonStyle.ghost(),
+        onPressed: () {},
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+                    SizedBox(height: 4),
+                    Text(time, style: TextStyle(fontSize: 12, color: VNLTheme.of(context).colorScheme.mutedForeground)),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 16),
+            ],
+          ),
         ),
-        title: Text(title),
-        subtitle: Text(time),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {},
       ),
     );
   }

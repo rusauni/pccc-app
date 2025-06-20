@@ -175,15 +175,18 @@ class OtpPageState extends PageViewControllerState<OtpPage> {
   }
   
   void _resendOtp() {
-    // Hiển thị trạng thái loading nếu cần
-    
-    // Gọi hàm resendOtp và xử lý kết quả trong then()
     widget.viewModel.otpViewModel.resendOtp().then((success) {
       if (success && mounted) {
         _startResendTimer();
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Mu00e3 OTP u0111u00e3 u0111u01b0u1ee3c gu1eedi lu1ea1i')),
+        // Show success message using showToast
+        showToast(
+          context: context,
+          builder: (context, overlay) => VNLCard(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Mã OTP đã được gửi lại'),
+            ),
+          ),
         );
       }
     });

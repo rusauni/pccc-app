@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' hide ButtonStyle, IconButton, FloatingActionButton;
 import 'package:vnl_common_ui/vnl_ui.dart';
 
 class DocumentsTab extends StatelessWidget {
@@ -12,18 +11,20 @@ class DocumentsTab extends StatelessWidget {
       itemBuilder: (context, index) {
         final document = _dummyDocuments[index];
         return _buildDocumentItem(
+          context: context,
           title: document['title']!,
           type: document['type']!,
           date: document['date']!,
           size: document['size']!,
           icon: _getIconForDocType(document['type']!),
-          color: _getColorForDocType(document['type']!),
+          color: _getColorForDocType(context, document['type']!),
         );
       },
     );
   }
 
   Widget _buildDocumentItem({
+    required BuildContext context,
     required String title,
     required String type,
     required String date,
@@ -31,61 +32,54 @@ class DocumentsTab extends StatelessWidget {
     required IconData icon,
     required Color color,
   }) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 12),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ListTile(
-        leading: Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+    final theme = VNLTheme.of(context);
+    
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: VNLCard(
+        child: VNLButton(
+          style: ButtonStyle.ghost(),
+          onPressed: () {},
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: color),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      SizedBox(height: 4),
+                      Text('$type • $size • $date', style: TextStyle(
+                        fontSize: 12, 
+                        color: theme.colorScheme.mutedForeground
+                      )),
+                    ],
+                  ),
+                ),
+                VNLButton(
+                  style: ButtonStyle.ghost(density: ButtonDensity.icon),
+                  onPressed: () {
+                    // Show options menu
+                  },
+                  child: Icon(Icons.more_vert),
+                ),
+              ],
+            ),
           ),
-          child: Icon(icon, color: color),
         ),
-        title: Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text('$type • $size • $date'),
-        trailing: PopupMenuButton<String>(
-          icon: Icon(Icons.more_vert),
-          onSelected: (value) {},
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'download',
-              child: Row(
-                children: [
-                  Icon(Icons.download, size: 20),
-                  SizedBox(width: 8),
-                  Text('Tải xuống'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'share',
-              child: Row(
-                children: [
-                  Icon(Icons.share, size: 20),
-                  SizedBox(width: 8),
-                  Text('Chia sẻ'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 20, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Xóa', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
-        onTap: () {},
       ),
     );
   }
@@ -108,21 +102,22 @@ class DocumentsTab extends StatelessWidget {
     }
   }
 
-  Color _getColorForDocType(String type) {
+  Color _getColorForDocType(BuildContext context, String type) {
+    final theme = VNLTheme.of(context);
     switch (type) {
       case 'PDF':
-        return Colors.red;
+        return theme.colorScheme.destructive;
       case 'DOCX':
-        return Colors.blue;
+        return theme.colorScheme.primary;
       case 'XLSX':
-        return Colors.green;
+        return theme.colorScheme.secondary;
       case 'PPTX':
-        return Colors.orange;
+        return Color(0xFFFF9500); // Orange
       case 'JPG':
       case 'PNG':
-        return Colors.purple;
+        return Color(0xFF9C27B0); // Purple
       default:
-        return Colors.grey;
+        return theme.colorScheme.mutedForeground;
     }
   }
 
