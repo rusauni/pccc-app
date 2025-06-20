@@ -1,17 +1,14 @@
-
-import 'package:base_app/pages/app_base/view_model/page_view_model.dart';
+import 'package:base_app/pages/base/view_model/base_view_model.dart';
 import 'package:base_app/repositories/auth_repository.dart';
 import 'package:gtd_helper/gtd_helper.dart';
 // import 'package:gtd_helper/helper/cached/cache_helper_extension.dart'; // Không cần thiết vì đã được bao gồm trong gtd_helper.dart
 
-class LoginViewModel extends PageViewModel {
+class LoginViewModel extends BaseViewModel {
   final _repository = AuthRepository();
   bool isLoading = false;
   String? errorMessage;
   
-  LoginViewModel() {
-    title = 'Đăng nhập';
-  }
+  LoginViewModel();
   
   Future<void> login(String username, String password) async {
     isLoading = true;

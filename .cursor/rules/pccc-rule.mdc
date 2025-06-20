@@ -8,10 +8,13 @@ Start all chats with 🤖
 - Flutter
 - Shadcn/UI from Custom lib `vnl_common_ui`
 # Misc
+- Always use components in `vnl_common_ui` first, if not enough then use material.
 - Follow MVVP Pattern
 - Follow page_rule.md
 - Follow page_cursor_rules.md
 - With API, should use pattern follow repository_cursor_rules.md
+- Always check errors before run.
+- Do not modify thrird party library.
 
 # *Note
 - Do not auto commit to git.

@@ -1,20 +1,20 @@
 import 'dart:io';
 
 import 'package:base_app/app/app_theme_setting.dart';
-import 'package:base_app/pages/app_base/view_model/page_view_model.dart';
+import 'package:base_app/pages/base/view_model/page_view_model.dart';
 import 'package:base_app/pages/app_themes/theme_page.dart';
 import 'package:base_app/pages/home/view_controller/setting_theme_page.dart';
 import 'package:base_app/pages/splash/view_controller/splash_view_controller.dart';
 import 'package:base_app/pages/auth/login/view_controller/login_page.dart';
-import 'package:base_app/pages/auth/login/view_model/login_view_model.dart';
+import 'package:base_app/pages/auth/login/view_model/login_page_view_model.dart';
 import 'package:base_app/pages/auth/otp/view_controller/otp_page.dart';
-import 'package:base_app/pages/auth/otp/view_model/otp_view_model.dart';
+import 'package:base_app/pages/auth/otp/view_model/otp_page_view_model.dart';
 import 'package:base_app/pages/auth/register/view_controller/register_page.dart';
-import 'package:base_app/pages/auth/register/view_model/register_view_model.dart';
+import 'package:base_app/pages/auth/register/view_model/register_page_view_model.dart';
 import 'package:base_app/pages/home/view_controller/navigate_page.dart';
 import 'package:base_app/pages/home/view_model/home_page_view_model.dart';
 import 'package:base_app/router/app_router.dart';
-import 'package:flutter/material.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
@@ -70,19 +70,19 @@ class VNLMainAppState extends State<VNLMainApp> {
         name: AppRouterPath.theme),
     GoRoute(
       path: '/auth',
-      builder: (context, state) => LoginPage(viewModel: LoginViewModel()),
+      builder: (context, state) => LoginPage(viewModel: LoginPageViewModel()),
       name: AppRouterPath.login,
       routes: [
         GoRoute(
           path: AppRouterPath.register,
-          builder: (context, state) => RegisterPage(viewModel: RegisterViewModel()),
+          builder: (context, state) => RegisterPage(viewModel: RegisterPageViewModel()),
           name: AppRouterPath.register,
         ),
         GoRoute(
           path: AppRouterPath.otp,
           builder: (context, state) {
             final phone = state.extra != null ? (state.extra as Map<String, dynamic>)['phone'] as String? ?? '' : '';
-            return OtpPage(viewModel: OtpViewModel(), phone: phone);
+            return OtpPage(viewModel: OtpPageViewModel(), phone: phone);
           },
           name: AppRouterPath.otp,
         ),

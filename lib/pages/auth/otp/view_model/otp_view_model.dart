@@ -1,17 +1,15 @@
 // No need for material import
-import 'package:base_app/pages/app_base/view_model/page_view_model.dart';
+import 'package:base_app/pages/base/view_model/base_view_model.dart';
 import 'package:base_app/repositories/auth_repository.dart';
 import 'package:gtd_helper/gtd_helper.dart';
 
-class OtpViewModel extends PageViewModel {
+class OtpViewModel extends BaseViewModel {
   final _repository = AuthRepository();
   bool isLoading = false;
   String? errorMessage;
   String phone = '';
   
-  OtpViewModel() {
-    title = 'Xác thực OTP';
-  }
+  OtpViewModel();
   
   void setPhone(String phone) {
     this.phone = phone;

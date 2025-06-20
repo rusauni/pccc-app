@@ -1,5 +1,5 @@
-import 'package:base_app/pages/app_base/view_controller/page_view_controller.dart';
-import 'package:base_app/pages/app_base/view_model/page_view_model.dart';
+import 'package:base_app/pages/base/view_controller/page_view_controller.dart';
+import 'package:base_app/pages/base/view_model/page_view_model.dart';
 import 'package:base_app/pages/app_themes/theme_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';

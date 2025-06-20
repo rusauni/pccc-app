@@ -1,7 +1,7 @@
 import 'package:base_app/pages/customer/view/customer_view.dart';
 import 'package:base_app/pages/customer/view_model/customer_page_view_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
-import '../../app_base/view_controller/page_view_controller.dart';
+import '../../base/view_controller/page_view_controller.dart';
 
 class CustomerPage extends PageViewController<CustomerPageViewModel> {
   const CustomerPage({super.key, required super.viewModel});

@@ -1,16 +1,14 @@
 // No need for material import
-import 'package:base_app/pages/app_base/view_model/page_view_model.dart';
+import 'package:base_app/pages/base/view_model/base_view_model.dart';
 import 'package:base_app/repositories/auth_repository.dart';
 import 'package:gtd_helper/gtd_helper.dart';
 
-class RegisterViewModel extends PageViewModel {
+class RegisterViewModel extends BaseViewModel {
   final _repository = AuthRepository();
   bool isLoading = false;
   String? errorMessage;
   
-  RegisterViewModel() {
-    title = 'Đăng ký';
-  }
+  RegisterViewModel();
   
   Future<bool> register({
     required String username,

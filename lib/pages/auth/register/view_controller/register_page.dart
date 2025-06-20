@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:base_app/pages/app_base/view_controller/page_view_controller.dart';
-import 'package:base_app/pages/auth/register/view_model/register_view_model.dart';
+import 'package:base_app/pages/base/view_controller/page_view_controller.dart';
+import 'package:base_app/pages/auth/register/view_model/register_page_view_model.dart';
+import 'package:base_app/pages/auth/register/view/register_view.dart';
 import 'package:go_router/go_router.dart';
 
-class RegisterPage extends PageViewController<RegisterViewModel> {
+class RegisterPage extends PageViewController<RegisterPageViewModel> {
   const RegisterPage({super.key, required super.viewModel});
   
   @override
@@ -22,7 +23,11 @@ class RegisterPageState extends PageViewControllerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   
   @override
-  Widget buildBody(Object pageContext) {
+  Widget buildBody(BuildContext pageContext) {
+    return RegisterView(viewModel: widget.viewModel.registerViewModel);
+  }
+
+  Widget _buildRegisterForm(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -164,23 +169,23 @@ class RegisterPageState extends PageViewControllerState<RegisterPage> {
               ),
               SizedBox(height: 24),
               // Error message
-              if (widget.viewModel.errorMessage != null)
+              if (widget.viewModel.registerViewModel.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    widget.viewModel.errorMessage!,
+                    widget.viewModel.registerViewModel.errorMessage!,
                     style: TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
                 ),
               // Register button
               ElevatedButton(
-                onPressed: widget.viewModel.isLoading ? null : _register,
+                onPressed: widget.viewModel.registerViewModel.isLoading ? null : _register,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: widget.viewModel.isLoading
+                child: widget.viewModel.registerViewModel.isLoading
                     ? SizedBox(
                         height: 20,
                         width: 20,
@@ -216,7 +221,7 @@ class RegisterPageState extends PageViewControllerState<RegisterPage> {
       return;
     }
     
-    final success = await widget.viewModel.register(
+    final success = await widget.viewModel.registerViewModel.register(
       username: _usernameController.text,
       password: _passwordController.text,
       email: _emailController.text,

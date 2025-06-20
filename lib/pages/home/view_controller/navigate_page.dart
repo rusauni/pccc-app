@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart' hide ButtonStyle, IconButton;
-import 'package:base_app/pages/app_base/view_controller/page_view_controller.dart';
+import 'package:base_app/pages/base/view_controller/page_view_controller.dart';
 import 'package:base_app/pages/home/view_model/home_page_view_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:base_app/pages/home/view_controller/tabs/home_tab.dart';
@@ -7,8 +6,6 @@ import 'package:base_app/pages/home/view_controller/tabs/news_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/documents_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/videos_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/settings_tab.dart';
-import 'package:base_app/router/app_router.dart';
-import 'package:go_router/go_router.dart';
 
 class NavigatePage extends PageViewController<HomePageViewModel> {
   const NavigatePage({super.key, required super.viewModel});

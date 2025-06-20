@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:gtd_helper/gtd_helper.dart';
 
 class BaseViewModel with ChangeNotifier {

@@ -9,12 +9,13 @@ import 'package:flutter/material.dart'
         CircularProgressIndicator,
         ButtonStyle;
 import 'package:vnl_common_ui/vnl_ui.dart';
-import 'package:base_app/pages/app_base/view_controller/page_view_controller.dart';
-import 'package:base_app/pages/auth/login/view_model/login_view_model.dart';
+import 'package:base_app/pages/base/view_controller/page_view_controller.dart';
+import 'package:base_app/pages/auth/login/view_model/login_page_view_model.dart';
+import 'package:base_app/pages/auth/login/view/login_view.dart';
 import 'package:go_router/go_router.dart';
 // import 'package:flutter/services.dart'; // Không cần thiết vì đã được bao gồm trong material.dart
 
-class LoginPage extends PageViewController<LoginViewModel> {
+class LoginPage extends PageViewController<LoginPageViewModel> {
   const LoginPage({super.key, required super.viewModel});
 
   @override
@@ -27,8 +28,11 @@ class LoginPageState extends PageViewControllerState<LoginPage> {
   final bool _obscurePassword = true; // Không thể là final vì cần thay đổi khi người dùng nhấn nút hiển thị/ẩn mật khẩu
 
   @override
-  Widget buildBody(Object pageContext) {
-    BuildContext context = pageContext as BuildContext;
+  Widget buildBody(BuildContext pageContext) {
+    return LoginView(viewModel: widget.viewModel.loginViewModel);
+  }
+
+  Widget _buildLoginForm(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.all(16.0),
@@ -81,11 +85,11 @@ class LoginPageState extends PageViewControllerState<LoginPage> {
             ),
             SizedBox(height: 24),
             // Error message
-            if (widget.viewModel.errorMessage != null)
+            if (widget.viewModel.loginViewModel.errorMessage != null)
               Padding(
                 padding: EdgeInsets.only(bottom: 16),
                 child: Text(
-                  widget.viewModel.errorMessage!,
+                  widget.viewModel.loginViewModel.errorMessage!,
                   style: TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
@@ -93,8 +97,8 @@ class LoginPageState extends PageViewControllerState<LoginPage> {
             // Login button
             VNLButton(
               style: ButtonStyle.primary(),
-              onPressed: widget.viewModel.isLoading ? null : _login,
-              child: widget.viewModel.isLoading
+              onPressed: widget.viewModel.loginViewModel.isLoading ? null : _login,
+              child: widget.viewModel.loginViewModel.isLoading
                   ? SizedBox(
                       height: 20,
                       width: 20,
@@ -106,8 +110,8 @@ class LoginPageState extends PageViewControllerState<LoginPage> {
             // Google login button
             VNLButton(
               style: ButtonStyle.outline(),
-              onPressed: widget.viewModel.isLoading ? null : _loginWithGoogle,
-              child: widget.viewModel.isLoading
+              onPressed: widget.viewModel.loginViewModel.isLoading ? null : _loginWithGoogle,
+              child: widget.viewModel.loginViewModel.isLoading
                   ? SizedBox(
                       height: 20,
                       width: 20,
@@ -143,20 +147,20 @@ class LoginPageState extends PageViewControllerState<LoginPage> {
   }
 
   void _login() async {
-    await widget.viewModel.login(
+    await widget.viewModel.loginViewModel.login(
       _usernameController.text,
       _passwordController.text,
     );
     // If no error message, consider login successful
-    if (widget.viewModel.errorMessage == null && mounted) {
+    if (widget.viewModel.loginViewModel.errorMessage == null && mounted) {
       context.go('/');
     }
   }
 
   void _loginWithGoogle() async {
-    await widget.viewModel.loginWithGoogle();
+    await widget.viewModel.loginViewModel.loginWithGoogle();
     // If no error message, consider login successful
-    if (widget.viewModel.errorMessage == null && mounted) {
+    if (widget.viewModel.loginViewModel.errorMessage == null && mounted) {
       context.go('/');
     }
   }

@@ -1,4 +1,4 @@
-import 'package:base_app/pages/app_base/view_model/base_view_model.dart';
+import 'package:base_app/pages/base/view_model/base_view_model.dart';
 import 'package:gtd_helper/helper/gtd_app_logger.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 

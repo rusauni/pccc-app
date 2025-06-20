@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart' hide CircularProgressIndicator, ButtonStyle, FilledButton, TextButton;
-import 'package:base_app/pages/app_base/view_controller/page_view_controller.dart';
-import 'package:base_app/pages/auth/otp/view_model/otp_view_model.dart';
+import 'package:base_app/pages/base/view_controller/page_view_controller.dart';
+import 'package:base_app/pages/auth/otp/view_model/otp_page_view_model.dart';
+import 'package:base_app/pages/auth/otp/view/otp_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 
-class OtpPage extends PageViewController<OtpViewModel> {
+class OtpPage extends PageViewController<OtpPageViewModel> {
   final String phone;
   
   const OtpPage({
@@ -34,7 +35,7 @@ class OtpPageState extends PageViewControllerState<OtpPage> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.setPhone(widget.phone);
+    widget.viewModel.otpViewModel.setPhone(widget.phone);
     _startResendTimer();
   }
   
@@ -53,7 +54,11 @@ class OtpPageState extends PageViewControllerState<OtpPage> {
   }
   
   @override
-  Widget buildBody(Object pageContext) {
+  Widget buildBody(BuildContext pageContext) {
+    return OtpView(viewModel: widget.viewModel.otpViewModel);
+  }
+
+  Widget _buildOtpForm(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -109,20 +114,20 @@ class OtpPageState extends PageViewControllerState<OtpPage> {
             ),
             SizedBox(height: 32),
             // Error message
-            if (widget.viewModel.errorMessage != null)
+            if (widget.viewModel.otpViewModel.errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  widget.viewModel.errorMessage!,
+                  widget.viewModel.otpViewModel.errorMessage!,
                   style: TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
               ),
             // Verify button
             ElevatedButton(
-              onPressed: widget.viewModel.isLoading ? null : _verifyOtp,
+              onPressed: widget.viewModel.otpViewModel.isLoading ? null : _verifyOtp,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: widget.viewModel.isLoading
+              child: widget.viewModel.otpViewModel.isLoading
                   ? SizedBox(
                       height: 20,
                       width: 20,
@@ -162,7 +167,7 @@ class OtpPageState extends PageViewControllerState<OtpPage> {
     final otpCode = _getOtpCode();
     if (otpCode.length != 6) return;
     
-    final success = await widget.viewModel.verifyOtp(otpCode);
+    final success = await widget.viewModel.otpViewModel.verifyOtp(otpCode);
     if (success && mounted) {
       // OTP verification successful, navigate to home
       context.go('/');
@@ -173,7 +178,7 @@ class OtpPageState extends PageViewControllerState<OtpPage> {
     // Hiển thị trạng thái loading nếu cần
     
     // Gọi hàm resendOtp và xử lý kết quả trong then()
-    widget.viewModel.resendOtp().then((success) {
+    widget.viewModel.otpViewModel.resendOtp().then((success) {
       if (success && mounted) {
         _startResendTimer();
         // Show success message
