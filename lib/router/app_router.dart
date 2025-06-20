@@ -1,4 +1,3 @@
-
 class AppRouterPath {
   static const String splash = "splashscreen";
   static const String theme = "theme";
@@ -12,6 +11,7 @@ class AppRouterPath {
   static const String about = "about";
   static const String contactUs = "contact-us";
   static const String news = "news";
+  static const String newsDetail = "news-detail";
   static const String communityGuide = "community-guide";
   static const String legalDocuments = "legal-documents";
   static const String adminProcedures = "admin-procedures";

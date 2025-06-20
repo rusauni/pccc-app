@@ -3,7 +3,8 @@ import 'package:base_app/pages/home/view_model/home_page_view_model.dart';
 import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:base_app/pages/home/view_controller/tabs/home_tab.dart';
-import 'package:base_app/pages/home/view_controller/tabs/news_tab.dart';
+import 'package:base_app/pages/news/view_controller/news_page.dart';
+import 'package:base_app/pages/news/view_model/news_page_view_model.dart';
 import 'package:base_app/pages/home/view_controller/tabs/documents_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/videos_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/settings_tab.dart';
@@ -66,7 +67,7 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
         mainContent = HomeTab();
         break;
       case 1:
-        mainContent = NewsTab();
+        mainContent = NewsPage(viewModel: NewsPageViewModel());
         break;
       case 2:
         mainContent = DocumentsTab();

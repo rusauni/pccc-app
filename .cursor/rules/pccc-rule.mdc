@@ -15,8 +15,10 @@ Start all chats with 🤖
 - With API, should use pattern follow repository_cursor_rules.md
 - Always check errors before run.
 - Do not modify thrird party library.
+- One file should only less than 500 line
 - Use Vietnamese show on UI, and in code use text utf8.
 - Popup and drawer should use UI from `vnl_common_ui`
+- Always use go_router and config in routes
 
 # *Note
 - Do not auto commit to git.
