@@ -279,7 +279,7 @@ class _SettingsTabState extends State<SettingsTab> {
   void _showLogoutDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => VNLAlertDialog(
         title: Text('Xác nhận đăng xuất'),
         content: Text('Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?'),
         actions: [

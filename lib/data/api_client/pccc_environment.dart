@@ -4,9 +4,9 @@ import 'package:gtd_network/gtd_network.dart';
 enum PcccEnvironmentType { development, staging, production }
 
 class PcccEnvironment extends BaseEnvironment {
-  static const String _devBaseUrl = 'https://api-dev.pccc.gov.vn';
-  static const String _stagingBaseUrl = 'https://api-staging.pccc.gov.vn';
-  static const String _prodBaseUrl = 'https://api.pccc.gov.vn';
+  static const String _devBaseUrl = 'https://dashboard.pccc40.com';
+  static const String _stagingBaseUrl = 'https://dashboard.pccc40.com';
+  static const String _prodBaseUrl = 'https://dashboard.pccc40.com';
 
   PcccEnvironment._({
     required String baseUrl,

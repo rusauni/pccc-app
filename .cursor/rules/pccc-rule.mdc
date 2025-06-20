@@ -16,6 +16,7 @@ Start all chats with 🤖
 - Always check errors before run.
 - Do not modify thrird party library.
 - Use Vietnamese show on UI, and in code use text utf8.
+- Popup and drawer should use UI from `vnl_common_ui`
 
 # *Note
 - Do not auto commit to git.

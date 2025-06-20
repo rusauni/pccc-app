@@ -1,5 +1,6 @@
 import 'package:base_app/pages/base/view_controller/page_view_controller.dart';
 import 'package:base_app/pages/home/view_model/home_page_view_model.dart';
+import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:base_app/pages/home/view_controller/tabs/home_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/news_tab.dart';
@@ -49,7 +50,7 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
 
   @override
   List<Widget> buildFooters(BuildContext pageContext) {
-    return [const VNLDivider(), _buildVNLNavigationBar()];
+    return [_buildModernNavigationBar()];
   }
 
   @override
@@ -87,41 +88,94 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
     return mainContent;
   }
 
-  // Navigation bar configuration variables
+  // Navigation bar configuration variables - updated for modern design
   final NavigationBarAlignment _alignment = NavigationBarAlignment.spaceAround;
-  final bool _expands = true;
-  final NavigationLabelType _labelType = NavigationLabelType.none;
+  final bool _expands = false;
+  final NavigationLabelType _labelType = NavigationLabelType.all;
   final bool _customButtonStyle = true;
-  final bool _expanded = true;
+  final bool _expanded = false;
 
-  NavigationItem _buildNavigationItem(String label, IconData icon) {
+  NavigationItem _buildNavigationItem(String label, IconData icon, IconData? selectedIcon) {
     return NavigationItem(
-      style: _customButtonStyle ? const ButtonStyle.muted(density: ButtonDensity.icon) : null,
-      selectedStyle: _customButtonStyle ? const ButtonStyle.fixed(density: ButtonDensity.icon) : null,
-      label: Text(label),
-      child: Icon(icon),
+      style: _customButtonStyle 
+        ? ButtonStyle.ghost(density: ButtonDensity.compact) 
+        : null,
+      selectedStyle: _customButtonStyle 
+        ? ButtonStyle.primary(density: ButtonDensity.compact) 
+        : null,
+      label: Text(
+        label,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+      ),
+      child: Icon(icon, size: 22),
     );
   }
 
-  Widget _buildVNLNavigationBar() {
-    return VNLNavigationBar(
-      alignment: _alignment,
-      labelType: _labelType,
-      expanded: _expanded,
-      expands: _expands,
-      onSelected: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      index: _selectedIndex,
-      children: [
-        _buildNavigationItem('Home', RadixIcons.home),
-        _buildNavigationItem('News', RadixIcons.fileText),
-        _buildNavigationItem('Documents', RadixIcons.fileText),
-        _buildNavigationItem('Videos', RadixIcons.video),
-        _buildNavigationItem('Settings', RadixIcons.gear),
-      ],
+  Widget _buildModernNavigationBar() {
+    final theme = VNLTheme.of(context);
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.background,
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.border,
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: VNLNavigationBar(
+            alignment: _alignment,
+            labelType: _labelType,
+            expanded: _expanded,
+            expands: _expands,
+            onSelected: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            index: _selectedIndex,
+            children: [
+              _buildNavigationItem(
+                'Trang chủ', 
+                BootstrapIcons.house, 
+                BootstrapIcons.houseFill
+              ),
+              _buildNavigationItem(
+                'Tin tức', 
+                BootstrapIcons.newspaper, 
+                null
+              ),
+              _buildNavigationItem(
+                'Tài liệu', 
+                BootstrapIcons.fileEarmark, 
+                BootstrapIcons.fileEarmarkFill
+              ),
+              _buildNavigationItem(
+                'Video', 
+                BootstrapIcons.playBtn, 
+                BootstrapIcons.playBtnFill
+              ),
+              _buildNavigationItem(
+                'Cài đặt', 
+                BootstrapIcons.gear, 
+                BootstrapIcons.gearFill
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
