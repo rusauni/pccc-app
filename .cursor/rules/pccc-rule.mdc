@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Start all chats with 🤖
+## Stack
+- Flutter
+- Shadcn/UI from Custom lib `vnl_common_ui`
+# Misc
+- Follow MVVP Pattern
+- Follow page_rule.md
+- Follow page_cursor_rules.md
+- With API, should use pattern follow repository_cursor_rules.md
+
+# *Note
+- Do not auto commit to git.
+- We are in design mode. We're not going to be building any backend functionailty. We're just going to use dummy JSON in order to mock up the prototype of our application.
