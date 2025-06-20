@@ -198,7 +198,7 @@ final customOptions = EditorJSRenderOptions(
                       // Content
                       EditorJSFlutterWidgets.renderContent(
                         editorData!,
-                        options: EditorJSRenderOptions.defaultTheme(),
+                        options: EditorJSRenderOptions.fromContext(context),
                       ),
                       
                       const SizedBox(height: 32),
@@ -312,7 +312,7 @@ final customOptions = EditorJSRenderOptions(
               subtitle: const Text('Sử dụng styling mặc định'),
               onTap: () {
                 Navigator.pop(context);
-                _applyRenderOptions(EditorJSRenderOptions.defaultTheme());
+                _applyRenderOptions(EditorJSRenderOptions.fromContext(context));
               },
             ),
             ListTile(
@@ -341,25 +341,19 @@ final customOptions = EditorJSRenderOptions(
 
   EditorJSRenderOptions _createLargeFontOptions() {
     return EditorJSRenderOptions(
+      context: context,
       blockSpacing: 20.0,
-      paragraphStyle: const TextStyle(fontSize: 18, height: 1.7),
-      h1Style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, height: 1.3),
-      h2Style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, height: 1.3),
-      h3Style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.3),
-      listStyle: const TextStyle(fontSize: 18, height: 1.6),
-      quoteStyle: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic, height: 1.7),
-      codeStyle: const TextStyle(fontFamily: 'Courier', fontSize: 16),
+      customParagraphStyle: const TextStyle(fontSize: 18, height: 1.7),
+      listItemSpacing: 12.0,
     );
   }
 
   EditorJSRenderOptions _createCompactOptions() {
     return EditorJSRenderOptions(
+      context: context,
       blockSpacing: 8.0,
       blockPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-      paragraphStyle: const TextStyle(fontSize: 14, height: 1.4),
-      h1Style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
-      h2Style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, height: 1.2),
-      h3Style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 1.2),
+      customParagraphStyle: const TextStyle(fontSize: 14, height: 1.4),
       listItemSpacing: 4.0,
     );
   }
@@ -389,7 +383,7 @@ class SimpleEditorJSWidget extends StatelessWidget {
       final editorData = EditorJSParser.parseFromString(jsonString);
       return EditorJSFlutterWidgets.renderContent(
         editorData,
-        options: options ?? EditorJSRenderOptions.defaultTheme(),
+        options: options ?? EditorJSRenderOptions.fromContext(context),
       );
     } catch (e) {
       return Container(
