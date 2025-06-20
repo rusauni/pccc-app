@@ -120,37 +120,37 @@ class VideosTab extends StatelessWidget {
       'title': 'Hướng dẫn sử dụng bình chữa cháy',
       'duration': '5:24',
       'date': '20/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1603502142164-f7e0c0f2e9a5',
+      'thumbnailUrl': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80',
     },
     {
       'title': 'Cách thoát hiểm khi có hỏa hoạn',
       'duration': '8:15',
       'date': '15/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1599595344070-c456bea6ee11',
+      'thumbnailUrl': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
     },
     {
       'title': 'Kỹ năng sơ cứu người bị nạn',
       'duration': '12:40',
       'date': '10/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1582139329536-e7284fece509',
+      'thumbnailUrl': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&q=80',
     },
     {
       'title': 'Diễn tập PCCC tại khu chung cư',
       'duration': '15:30',
       'date': '05/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1599595344070-c456bea6ee11',
+      'thumbnailUrl': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
     },
     {
       'title': 'Cách lắp đặt hệ thống báo cháy',
       'duration': '10:12',
       'date': '01/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4',
+      'thumbnailUrl': 'https://images.unsplash.com/photo-1503428593586-e225b39bddfe?w=800&q=80',
     },
     {
       'title': 'Bảo trì thiết bị PCCC định kỳ',
       'duration': '7:45',
       'date': '25/04/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122',
+      'thumbnailUrl': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
     },
   ];
 }

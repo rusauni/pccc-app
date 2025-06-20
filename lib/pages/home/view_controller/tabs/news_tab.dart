@@ -85,35 +85,35 @@ class NewsTab extends StatelessWidget {
       'description':
           'Sáng ngày 15/5/2025, Phòng Cảnh sát PCCC&CNCH Công an TP đã tổ chức buổi diễn tập phương án chữa cháy và cứu nạn cứu hộ tại khu chung cư cao tầng...',
       'date': '15/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1599595344070-c456bea6ee11',
+      'imageUrl': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
     },
     {
       'title': 'Cập nhật quy định mới về PCCC năm 2025',
       'description':
           'Bộ Công an vừa ban hành Thông tư số 25/2025/TT-BCA quy định về phòng cháy, chữa cháy đối với khu dân cư, hộ gia đình, nhà để ở kết hợp sản xuất, kinh doanh...',
       'date': '10/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1577563908411-5077b6dc7624',
+      'imageUrl': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
     },
     {
       'title': 'Hướng dẫn sử dụng bình chữa cháy đúng cách',
       'description':
           'Bình chữa cháy là thiết bị quan trọng trong công tác phòng cháy chữa cháy. Tuy nhiên, không phải ai cũng biết cách sử dụng bình chữa cháy đúng cách...',
       'date': '05/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1603502142164-f7e0c0f2e9a5',
+      'imageUrl': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80',
     },
     {
       'title': 'Tập huấn PCCC cho học sinh các trường THPT',
       'description':
           'Nhằm nâng cao ý thức và kỹ năng phòng cháy chữa cháy cho học sinh, Phòng Cảnh sát PCCC&CNCH đã phối hợp với Sở Giáo dục và Đào tạo tổ chức chương trình tập huấn...',
       'date': '01/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4',
+      'imageUrl': 'https://images.unsplash.com/photo-1503428593586-e225b39bddfe?w=800&q=80',
     },
     {
       'title': 'Kiểm tra an toàn PCCC tại các khu công nghiệp',
       'description':
           'Đoàn kiểm tra liên ngành về PCCC đã tiến hành kiểm tra đột xuất tại các khu công nghiệp trên địa bàn tỉnh. Qua kiểm tra phát hiện nhiều tồn tại, thiếu sót về công tác PCCC...',
       'date': '25/04/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122',
+      'imageUrl': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
     },
   ];
 }
