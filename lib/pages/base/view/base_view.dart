@@ -10,7 +10,13 @@ abstract class BaseView<T extends BaseViewModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Data.inherit(data: viewModel, child: buildWidget(context));
+    return Data.inherit(
+      data: viewModel, 
+      child: AnimatedBuilder(
+        animation: viewModel,
+        builder: (context, child) => buildWidget(context),
+      ),
+    );
   }
 
   static BaseViewModel? of(BuildContext context) {

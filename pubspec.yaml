@@ -81,6 +81,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/appicon/
+    - assets/data/
     - docs.json
     - pubspec.lock
 

@@ -1,0 +1,416 @@
+{
+  "pccSystemsData": {
+    "systems": [
+      {
+        "id": "he_thong_chua_chay_tu_dong",
+        "name": "Hệ Thống Chữa Cháy Tự Động",
+        "description": "Hệ thống tự động phát hiện và dập tắt đám cháy",
+        "inputFields": [
+          "loaiNha",
+          "chieuCao", 
+          "tongDienTichSan",
+          "khoiTich",
+          "hangNguyHiemChay",
+          "soTang",
+          "mucDichSuDungDacBiet"
+        ],
+        "conditions": {
+          "required": true,
+          "rules": [
+            {
+              "condition": "chieuCao >= 25",
+              "description": "Công trình cao từ 25m trở lên"
+            },
+            {
+              "condition": "tongDienTichSan >= 5000 AND loaiNha IN ['nha_hon_hop', 'dich_vu_luu_tru', 'buu_dien', 'truyen_thanh', 'van_hoa', 'thu_vien', 'an_uong', 'tham_my', 'vui_choi_giai_tri', 'hanh_chinh']",
+              "description": "Diện tích từ 5.000m² cho các loại nhà đặc biệt"
+            },
+            {
+              "condition": "tongDienTichSan >= 10000 AND loaiNha IN ['chung_cu', 'tap_the', 'ky_tuc_xa', 'ga_san_bay', 'ga_duong_sat', 'ben_xe']",
+              "description": "Diện tích từ 10.000m² cho chung cư, ký túc xá, ga"
+            },
+            {
+              "condition": "hangNguyHiemChay IN ['A', 'B', 'C']",
+              "description": "Nhà xưởng/kho hạng nguy hiểm A, B, C"
+            },
+            {
+              "condition": "loaiNha = 'ga_ra_ham' AND soTang >= 2",
+              "description": "Ga ra hầm từ 2 tầng trở lên"
+            },
+            {
+              "condition": "loaiNha IN ['duong_lao', 'cham_soc_khuyet_tat']",
+              "description": "Nhà dưỡng lão, chăm sóc người khuyết tật (không phụ thuộc quy mô)"
+            },
+            {
+              "condition": "loaiNha IN ['benh_vien', 'tram_y_te', 'phong_kham'] AND (chieuCao >= 25 OR tongDienTichSan >= 2000)",
+              "description": "Cơ sở y tế có chiều cao từ 25m hoặc diện tích từ 2.000m²"
+            }
+          ]
+        },
+        "reference": "Điều 5.1, Phụ lục A (Bảng A.1, A.2, A.3, A.4)",
+        "priority": "high"
+      },
+      {
+        "id": "he_thong_bao_chay_tu_dong", 
+        "name": "Hệ Thống Báo Cháy Tự Động",
+        "description": "Hệ thống phát hiện và cảnh báo cháy tự động",
+        "inputFields": [
+          "loaiNha",
+          "chieuCao",
+          "soTang", 
+          "tongDienTichSan",
+          "khoiTich",
+          "hangNguyHiemChay",
+          "coTangHam",
+          "soNguoiSuDung"
+        ],
+        "conditions": {
+          "required": true,
+          "rules": [
+            {
+              "condition": "soTang >= 7 OR chieuCao >= 25",
+              "description": "Công trình từ 7 tầng hoặc 25m trở lên"
+            },
+            {
+              "condition": "soTang >= 3 OR khoiTich >= 1500 AND loaiNha IN ['nha_o_ket_hop', 'nha_hon_hop', 'buu_dien', 'van_hoa', 'benh_vien']",
+              "description": "Từ 3 tầng hoặc 1.500m³ cho một số loại nhà"
+            },
+            {
+              "condition": "soTang >= 5 OR khoiTich >= 2500 AND loaiNha IN ['chung_cu', 'tap_the', 'ky_tuc_xa', 'truong_hoc']",
+              "description": "Từ 5 tầng hoặc 2.500m³ cho chung cư, trường học"
+            },
+            {
+              "condition": "hangNguyHiemChay IN ['A', 'B', 'C', 'D', 'E']",
+              "description": "Nhà xưởng/kho các hạng nguy hiểm"
+            },
+            {
+              "condition": "coTangHam = true",
+              "description": "Có tầng hầm"
+            },
+            {
+              "condition": "loaiNha IN ['nha_tre', 'mau_giao'] AND (soNguoiSuDung >= 100 OR khoiTich >= 1000)",
+              "description": "Nhà trẻ, mẫu giáo từ 100 cháu hoặc 1.000m³"
+            },
+            {
+              "condition": "loaiNha IN ['duong_lao', 'cham_soc_khuyet_tat', 'ga_san_bay', 'thu_vien']",
+              "description": "Một số loại nhà đặc biệt (không phụ thuộc quy mô)"
+            }
+          ]
+        },
+        "reference": "Điều 5.2, Phụ lục A (Bảng A.1, A.2, A.3, A.4)",
+        "priority": "high"
+      },
+      {
+        "id": "he_thong_hong_nuoc_trong_nha",
+        "name": "Hệ Thống Họng Nước Chữa Cháy Trong Nhà", 
+        "description": "Hệ thống cung cấp nước chữa cháy trong nhà",
+        "inputFields": [
+          "loaiNha",
+          "chieuCao",
+          "soTang",
+          "hangNguyHiemChay", 
+          "coTangHam",
+          "suDungChatKiNuoc"
+        ],
+        "conditions": {
+          "required": true,
+          "rules": [
+            {
+              "condition": "soTang >= 7 OR chieuCao >= 25",
+              "description": "Công trình từ 7 tầng hoặc 25m trở lên"
+            },
+            {
+              "condition": "hangNguyHiemChay IN ['A', 'B', 'C'] AND tongDienTichSan > 500",
+              "description": "Nhà xưởng/kho hạng A,B,C diện tích > 500m²"
+            },
+            {
+              "condition": "coTangHam = true",
+              "description": "Có tầng hầm"
+            }
+          ]
+        },
+        "reference": "Điều 5.4, Phụ lục B",
+        "priority": "medium"
+      },
+      {
+        "id": "he_thong_cap_nuoc_ngoai_nha",
+        "name": "Hệ Thống Cấp Nước Chữa Cháy Ngoài Nhà",
+        "description": "Hệ thống cung cấp nước chữa cháy ngoài nhà",
+        "inputFields": [
+          "loaiNha",
+          "tongDienTichSan",
+          "khoiTich", 
+          "khoangCachDenTruNuocCongCong",
+          "khaNangKetNoiNuocSinhHoat"
+        ],
+        "conditions": {
+          "required": false,
+          "rules": [
+            {
+              "condition": "loaiNha IN ['khu_cong_nghiep', 'khu_do_thi']",
+              "description": "Khu công nghiệp, đô thị"
+            },
+            {
+              "condition": "tongDienTichSan > 600 AND loaiNha = 'nha_o'",
+              "description": "Nhà ở diện tích > 600m²"
+            },
+            {
+              "condition": "tongDienTichSan > 1000 AND loaiNha = 'nha_xuong'",
+              "description": "Nhà xưởng diện tích > 1.000m²"
+            },
+            {
+              "condition": "khoangCachDenTruNuocCongCong > 150",
+              "description": "Xa nguồn nước PCCC công cộng"
+            }
+          ]
+        },
+        "reference": "Điều 5.3, Phụ lục C",
+        "priority": "medium"
+      },
+      {
+        "id": "thiet_bi_chua_chay_ban_dau",
+        "name": "Thiết Bị Chữa Cháy Ban Đầu",
+        "description": "Bình chữa cháy, cát, nước và các thiết bị chữa cháy cơ bản",
+        "inputFields": [
+          "loaiNha",
+          "dienTichKhuVuc",
+          "coVatCan",
+          "khuVucKhoTiepCan",
+          "loaiBinhChuaChay"
+        ],
+        "conditions": {
+          "required": true,
+          "rules": [
+            {
+              "condition": "loaiNha != 'nha_o_rieng_le'",
+              "description": "Hầu hết công trình (trừ nhà ở riêng lẻ không thuộc diện)"
+            },
+            {
+              "condition": "loaiNha IN ['kho', 'cua_hang', 'san_xuat']",
+              "description": "Nhà kho, cửa hàng, cơ sở sản xuất theo Phụ lục H"
+            },
+            {
+              "condition": "loaiNha IN ['kho_dau', 'cua_hang_xang', 'khi_dot']",
+              "description": "Cơ sở xăng dầu, khí đốt theo TCVN chuyên ngành"
+            }
+          ]
+        },
+        "reference": "Điều 5.8, Phụ lục H",
+        "priority": "high"
+      },
+      {
+        "id": "thiet_bi_thoat_nan_thong_bao",
+        "name": "Thiết Bị Thoát Nạn & Thông Báo",
+        "description": "Đèn, biển báo, hệ thống âm thanh thoát nạn",
+        "inputFields": [
+          "loaiNha",
+          "soNguoiSuDung",
+          "coPhongNgu", 
+          "coPhongOnLon"
+        ],
+        "conditions": {
+          "required": true,
+          "rules": [
+            {
+              "condition": "soNguoiSuDung > 0",
+              "description": "Tất cả công trình có người sử dụng"
+            },
+            {
+              "condition": "coPhongNgu = true",
+              "description": "Công trình có phòng ngủ"
+            },
+            {
+              "condition": "coPhongOnLon = true",
+              "description": "Phòng có mức ồn > 95 dBA cần cảnh báo ánh sáng"
+            }
+          ]
+        },
+        "reference": "Điều 5.5, Phụ lục G",
+        "priority": "high"
+      },
+      {
+        "id": "phuong_tien_chua_chay_co_gioi",
+        "name": "Phương Tiện Chữa Cháy Cơ Giới",
+        "description": "Xe chữa cháy, máy bơm chữa cháy di động",
+        "inputFields": [
+          "loaiCoSo",
+          "dienTichCoSo",
+          "loaiPhuongTienCoGioi"
+        ],
+        "conditions": {
+          "required": false,
+          "rules": [
+            {
+              "condition": "loaiCoSo IN ['san_xuat', 'kho_tang'] AND dienTichCoSo > 5000",
+              "description": "Cơ sở sản xuất, kho tàng quy mô lớn"
+            },
+            {
+              "condition": "hangNguyHiemChay IN ['A', 'B'] AND dienTichCoSo > 2000",
+              "description": "Cơ sở nguy hiểm cháy nổ cao"
+            }
+          ]
+        },
+        "reference": "Điều 5.7, Phụ lục D",
+        "priority": "low"
+      },
+      {
+        "id": "thiet_bi_pha_do_mat_na_phong_doc",
+        "name": "Thiết Bị Phá Dỡ Thô Sơ & Mặt Nạ Phòng Độc",
+        "description": "Dụng cụ phá dỡ và bảo hộ cá nhân",
+        "inputFields": [
+          "loaiNha",
+          "viTriBoTriPhongTruc",
+          "coKhuyenKhichMatNaLocDoc"
+        ],
+        "conditions": {
+          "required": false,
+          "rules": [
+            {
+              "condition": "loaiNha = 'tru_so_pccc'",
+              "description": "Trụ sở PCCC"
+            },
+            {
+              "condition": "viTriBoTriPhongTruc = true",
+              "description": "Đội PCCC cơ sở hoặc vị trí chiến lược"
+            },
+            {
+              "condition": "coKhuyenKhichMatNaLocDoc = true",
+              "description": "Theo quy định địa phương hoặc ngành"
+            }
+          ]
+        },
+        "reference": "Điều 5.8, Phụ lục E, F",
+        "priority": "low"
+      }
+    ],
+    "buildingTypes": [
+      {
+        "id": "nha_o",
+        "name": "Nhà ở",
+        "subcategories": [
+          {"id": "nha_o_rieng_le", "name": "Nhà ở riêng lẻ"},
+          {"id": "chung_cu", "name": "Chung cư"},
+          {"id": "tap_the", "name": "Nhà tập thể"},
+          {"id": "ky_tuc_xa", "name": "Ký túc xá"}
+        ]
+      },
+      {
+        "id": "nha_cong_cong",
+        "name": "Nhà công cộng",
+        "subcategories": [
+          {"id": "truong_hoc", "name": "Trường học"},
+          {"id": "nha_tre", "name": "Nhà trẻ"},
+          {"id": "mau_giao", "name": "Mẫu giáo"},
+          {"id": "benh_vien", "name": "Bệnh viện"},
+          {"id": "tram_y_te", "name": "Trạm y tế"},
+          {"id": "phong_kham", "name": "Phòng khám"},
+          {"id": "duong_lao", "name": "Nhà dưỡng lão"},
+          {"id": "cham_soc_khuyet_tat", "name": "Nhà chăm sóc người khuyết tật"}
+        ]
+      },
+      {
+        "id": "nha_san_xuat",
+        "name": "Nhà sản xuất",
+        "subcategories": [
+          {"id": "nha_xuong", "name": "Nhà xưởng"},
+          {"id": "nha_kho", "name": "Nhà kho"},
+          {"id": "khu_cong_nghiep", "name": "Khu công nghiệp"}
+        ]
+      },
+      {
+        "id": "nha_dich_vu",
+        "name": "Nhà dịch vụ",
+        "subcategories": [
+          {"id": "nha_hon_hop", "name": "Nhà hỗn hợp"},
+          {"id": "dich_vu_luu_tru", "name": "Dịch vụ lưu trú"},
+          {"id": "an_uong", "name": "Cửa hàng ăn uống"},
+          {"id": "tham_my", "name": "Thẩm mỹ viện"},
+          {"id": "vui_choi_giai_tri", "name": "Vui chơi giải trí"}
+        ]
+      },
+      {
+        "id": "nha_giao_thong",
+        "name": "Nhà giao thông",
+        "subcategories": [
+          {"id": "ga_san_bay", "name": "Nhà ga sân bay"},
+          {"id": "ga_duong_sat", "name": "Nhà ga đường sắt"},
+          {"id": "ben_xe", "name": "Bến xe khách"},
+          {"id": "ga_ra_ham", "name": "Ga ra hầm"}
+        ]
+      }
+    ],
+    "fireRiskCategories": [
+      {"id": "A", "name": "Hạng A - Rất nguy hiểm", "description": "Chất lỏng dễ cháy, khí dễ cháy"},
+      {"id": "B", "name": "Hạng B - Nguy hiểm", "description": "Chất rắn dễ cháy, bột dễ cháy"},
+      {"id": "C", "name": "Hạng C - Trung bình", "description": "Chất rắn khó cháy"},
+      {"id": "D", "name": "Hạng D - Thấp", "description": "Chất không cháy"},
+      {"id": "E", "name": "Hạng E - Rất thấp", "description": "Chất kháng cháy"}
+    ],
+    "suggestions": {
+      "he_thong_chua_chay_tu_dong": {
+        "required": [
+          "Lắp đặt hệ thống sprinkler tự động",
+          "Thiết kế mạng ống dẫn nước chữa cháy",
+          "Lắp đặt bơm tăng áp chữa cháy",
+          "Thiết kế bể chứa nước chữa cháy"
+        ],
+        "optional": [
+          "Hệ thống chữa cháy bằng khí CO2",
+          "Hệ thống chữa cháy bằng bọt",
+          "Hệ thống chữa cháy bằng bột khô"
+        ]
+      },
+      "he_thong_bao_chay_tu_dong": {
+        "required": [
+          "Lắp đặt đầu báo khói quang điện",
+          "Lắp đặt đầu báo nhiệt",
+          "Thiết kế tủ trung tâm báo cháy",
+          "Lắp đặt nút ấn báo cháy thủ công"
+        ],
+        "optional": [
+          "Đầu báo khói ion hóa",
+          "Đầu báo ngọn lửa",
+          "Hệ thống báo cháy thông minh"
+        ]
+      },
+      "he_thong_hong_nuoc_trong_nha": {
+        "required": [
+          "Lắp đặt họng nước chữa cháy DN65",
+          "Thiết kế tủ chứa thiết bị chữa cháy",
+          "Lắp đặt vòi chữa cháy D50",
+          "Thiết kế đường ống cấp nước"
+        ],
+        "optional": [
+          "Họng nước chữa cháy DN100",
+          "Hệ thống giám sát áp lực nước"
+        ]
+      },
+      "thiet_bi_chua_chay_ban_dau": {
+        "required": [
+          "Bình chữa cháy bột khô ABC 4kg",
+          "Bình chữa cháy CO2 3kg",
+          "Thùng cát chữa cháy 0.5m³",
+          "Xô chữa cháy kim loại"
+        ],
+        "optional": [
+          "Bình chữa cháy bọt AFFF",
+          "Chăn chữa cháy",
+          "Bình chữa cháy nước"
+        ]
+      },
+      "thiet_bi_thoat_nan_thong_bao": {
+        "required": [
+          "Đèn exit thoát nạn",
+          "Biển báo hướng thoát nạn",
+          "Loa thông báo thoát nạn",
+          "Đèn nhấp nháy cảnh báo"
+        ],
+        "optional": [
+          "Hệ thống phát thanh tự động",
+          "Đèn LED báo hướng thoát nạn",
+          "Màn hình hiển thị hướng dẫn"
+        ]
+      }
+    }
+  }
+} 

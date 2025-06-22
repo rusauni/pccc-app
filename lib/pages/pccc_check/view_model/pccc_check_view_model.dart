@@ -1,325 +1,246 @@
 import 'package:base_app/pages/base/view_model/base_view_model.dart';
-import 'package:base_app/pages/pccc_check/model/pccc_check_model.dart';
+import 'package:base_app/data/models/pccc_system_model.dart';
+import 'package:base_app/data/services/pccc_analysis_service.dart';
 
 class PCCCCheckViewModel extends BaseViewModel {
-  // Các hệ thống kiểm tra
-  final List<PCCCSystemCheck> _systems = [
-    PCCCSystemCheck(
-      id: 'auto_fire_suppression',
-      name: 'Hệ Thống Chữa Cháy Tự Động',
-      parameters: {
-        'loaiNha': null,
-        'chieuCao': null,
-        'tongDienTichSan': null,
-        'khoiTich': null,
-        'hangNguyHiemChay': null,
-        'tiLePhongCanCC': null,
-        'coHangMucDacBiet': false,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'auto_fire_alarm',
-      name: 'Hệ Thống Báo Cháy Tự Động',
-      parameters: {
-        'loaiNha': null,
-        'chieuCao': null,
-        'soTang': null,
-        'dienTichSan': null,
-        'khoiTich': null,
-        'coTangHam': false,
-        'hangNguyHiemChay': null,
-        'choPhepThayTheCucBo': false,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'external_water_supply',
-      name: 'Hệ Thống Cấp Nước Chữa Cháy Ngoài Nhà',
-      parameters: {
-        'khoangCachNguonCap': null,
-        'luuLuongCapNuoc': null,
-        'truLuongCapNuoc': null,
-        'coHeThongNuocNgoaiNha': false,
-        'ketHopCapNuocSinhHoat': false,
-        'loaiNha': null,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'internal_hydrant',
-      name: 'Hệ Thống Họng Nước Chữa Cháy Trong Nhà',
-      parameters: {
-        'loaiNha': null,
-        'chieuCao': null,
-        'hangNguyHiemChay': null,
-        'coTangHam': false,
-        'suDungChatKiNuoc': false,
-        'yeuCauDuyTriApSuat': false,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'initial_fire_equipment',
-      name: 'Thiết Bị Chữa Cháy Ban Đầu',
-      parameters: {
-        'dienTichKhuVuc': null,
-        'coVatCan': false,
-        'loaiNha': null,
-        'khuVucNgotNgach': false,
-        'loaiBinhChuaChay': null,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'escape_notification',
-      name: 'Thiết Bị Thoát Nạn & Thông Báo',
-      parameters: {
-        'loaiNha': null,
-        'soNguoiSuDung': null,
-        'coPhongNgu': false,
-        'coPhongOnLon': false,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'mechanical_vehicles',
-      name: 'Phương Tiện Chữa Cháy Cơ Giới',
-      parameters: {
-        'loaiCoSo': null,
-        'dienTichCoSo': null,
-        'loaiPhuongTienCoGioi': null,
-      },
-    ),
-    PCCCSystemCheck(
-      id: 'demolition_masks',
-      name: 'Thiết Bị Phá Dỡ Thô Sơ & Mặt Nạ Phòng Độc',
-      parameters: {
-        'loaiNha': null,
-        'viTriBoTriPhongTruc': null,
-        'coKhuyenKhichMatNaLocDoc': false,
-      },
-    ),
-  ];
+  // Dữ liệu input từ người dùng
+  final PCCCInputData _inputData = PCCCInputData();
+  
+  // Kết quả phân tích
+  List<PCCCCheckResult> _analysisResults = [];
+  
+  // Danh sách loại công trình
+  List<BuildingType> _buildingTypes = [];
+  
+  // Danh sách hạng nguy hiểm cháy
+  List<FireRiskCategory> _fireRiskCategories = [];
+  
+  // Trạng thái loading
+  bool _isLoading = false;
+  bool _isAnalyzing = false;
+  
+  // Error handling
+  String? _errorMessage;
 
-  List<PCCCSystemCheck> get systems => _systems;
+  // Getters
+  PCCCInputData get inputData => _inputData;
+  List<PCCCCheckResult> get analysisResults => _analysisResults;
+  List<BuildingType> get buildingTypes => _buildingTypes;
+  List<FireRiskCategory> get fireRiskCategories => _fireRiskCategories;
+  bool get isLoading => _isLoading;
+  bool get isAnalyzing => _isAnalyzing;
+  String? get errorMessage => _errorMessage;
+  bool get hasResults => _analysisResults.isNotEmpty;
 
-  PCCCCheckViewModel();
+  PCCCCheckViewModel() {
+    _initializeData();
+  }
 
-  // Cập nhật parameter cho hệ thống
-  void updateSystemParameter(String systemId, String paramKey, dynamic value) {
-    final systemIndex = _systems.indexWhere((s) => s.id == systemId);
-    if (systemIndex != -1) {
-      final system = _systems[systemIndex];
-      final updatedParameters = Map<String, dynamic>.from(system.parameters);
-      updatedParameters[paramKey] = value;
+  // Khởi tạo dữ liệu ban đầu
+  Future<void> _initializeData() async {
+    _setLoading(true);
+    try {
+      _buildingTypes = await PCCCAnalysisService.getBuildingTypes();
+      _fireRiskCategories = await PCCCAnalysisService.getFireRiskCategories();
       
-      _systems[systemIndex] = system.copyWith(parameters: updatedParameters);
-      notifyListeners();
+      _clearError();
+    } catch (e) {
+      _setError('Không thể tải dữ liệu khởi tạo: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
-  // Phân tích hệ thống
-  void analyzeSystem(String systemId) {
-    final systemIndex = _systems.indexWhere((s) => s.id == systemId);
-    if (systemIndex != -1) {
-      final system = _systems[systemIndex];
-      final result = _performAnalysis(system);
-      
-      _systems[systemIndex] = system.copyWith(result: result);
-      notifyListeners();
-    }
-  }
-
-  // Reset hệ thống
-  void resetSystem(String systemId) {
-    final systemIndex = _systems.indexWhere((s) => s.id == systemId);
-    if (systemIndex != -1) {
-      final system = _systems[systemIndex];
-      final resetParameters = <String, dynamic>{};
-      
-      // Reset tất cả parameters về null hoặc false
-      system.parameters.forEach((key, value) {
-        if (value is bool) {
-          resetParameters[key] = false;
-        } else {
-          resetParameters[key] = null;
-        }
-      });
-      
-      _systems[systemIndex] = system.copyWith(
-        parameters: resetParameters,
-        result: null,
-      );
-      notifyListeners();
-    }
-  }
-
-  // Reset tất cả
-  void resetAll() {
-    for (int i = 0; i < _systems.length; i++) {
-      final system = _systems[i];
-      final resetParameters = <String, dynamic>{};
-      
-      system.parameters.forEach((key, value) {
-        if (value is bool) {
-          resetParameters[key] = false;
-        } else {
-          resetParameters[key] = null;
-        }
-      });
-      
-      _systems[i] = system.copyWith(
-        parameters: resetParameters,
-        result: null,
-      );
-    }
+  // Cập nhật dữ liệu input
+  void updateInputData({
+    String? loaiNha,
+    double? chieuCao,
+    int? soTang,
+    double? tongDienTichSan,
+    double? khoiTich,
+    String? hangNguyHiemChay,
+    bool? coTangHam,
+    int? soNguoiSuDung,
+    bool? coPhongNgu,
+    bool? coPhongOnLon,
+    double? dienTichKhuVuc,
+    bool? coVatCan,
+    bool? khuVucKhoTiepCan,
+    String? loaiBinhChuaChay,
+    double? khoangCachDenTruNuocCongCong,
+    bool? khaNangKetNoiNuocSinhHoat,
+    bool? suDungChatKiNuoc,
+    String? loaiCoSo,
+    double? dienTichCoSo,
+    String? loaiPhuongTienCoGioi,
+    bool? viTriBoTriPhongTruc,
+    bool? coKhuyenKhichMatNaLocDoc,
+    bool? mucDichSuDungDacBiet,
+  }) {
+    if (loaiNha != null) _inputData.loaiNha = loaiNha;
+    if (chieuCao != null) _inputData.chieuCao = chieuCao;
+    if (soTang != null) _inputData.soTang = soTang;
+    if (tongDienTichSan != null) _inputData.tongDienTichSan = tongDienTichSan;
+    if (khoiTich != null) _inputData.khoiTich = khoiTich;
+    if (hangNguyHiemChay != null) _inputData.hangNguyHiemChay = hangNguyHiemChay;
+    if (coTangHam != null) _inputData.coTangHam = coTangHam;
+    if (soNguoiSuDung != null) _inputData.soNguoiSuDung = soNguoiSuDung;
+    if (coPhongNgu != null) _inputData.coPhongNgu = coPhongNgu;
+    if (coPhongOnLon != null) _inputData.coPhongOnLon = coPhongOnLon;
+    if (dienTichKhuVuc != null) _inputData.dienTichKhuVuc = dienTichKhuVuc;
+    if (coVatCan != null) _inputData.coVatCan = coVatCan;
+    if (khuVucKhoTiepCan != null) _inputData.khuVucKhoTiepCan = khuVucKhoTiepCan;
+    if (loaiBinhChuaChay != null) _inputData.loaiBinhChuaChay = loaiBinhChuaChay;
+    if (khoangCachDenTruNuocCongCong != null) _inputData.khoangCachDenTruNuocCongCong = khoangCachDenTruNuocCongCong;
+    if (khaNangKetNoiNuocSinhHoat != null) _inputData.khaNangKetNoiNuocSinhHoat = khaNangKetNoiNuocSinhHoat;
+    if (suDungChatKiNuoc != null) _inputData.suDungChatKiNuoc = suDungChatKiNuoc;
+    if (loaiCoSo != null) _inputData.loaiCoSo = loaiCoSo;
+    if (dienTichCoSo != null) _inputData.dienTichCoSo = dienTichCoSo;
+    if (loaiPhuongTienCoGioi != null) _inputData.loaiPhuongTienCoGioi = loaiPhuongTienCoGioi;
+    if (viTriBoTriPhongTruc != null) _inputData.viTriBoTriPhongTruc = viTriBoTriPhongTruc;
+    if (coKhuyenKhichMatNaLocDoc != null) _inputData.coKhuyenKhichMatNaLocDoc = coKhuyenKhichMatNaLocDoc;
+    if (mucDichSuDungDacBiet != null) _inputData.mucDichSuDungDacBiet = mucDichSuDungDacBiet;
+    
     notifyListeners();
   }
 
-  // Logic phân tích (đơn giản hóa)
-  PCCCCheckResult _performAnalysis(PCCCSystemCheck system) {
-    // Đây là logic phân tích đơn giản, thực tế sẽ phức tạp hơn
-    String status = 'not_required';
-    String result = 'Chưa đủ thông tin để phân tích';
-    String reference = 'TCVN 3890:2023';
-
-    switch (system.id) {
-      case 'auto_fire_suppression':
-        result = _analyzeAutoFireSuppression(system.parameters);
-        break;
-      case 'auto_fire_alarm':
-        result = _analyzeAutoFireAlarm(system.parameters);
-        break;
-      case 'external_water_supply':
-        result = _analyzeExternalWaterSupply(system.parameters);
-        break;
-      case 'internal_hydrant':
-        result = _analyzeInternalHydrant(system.parameters);
-        break;
-      case 'initial_fire_equipment':
-        result = _analyzeInitialFireEquipment(system.parameters);
-        break;
-      case 'escape_notification':
-        result = _analyzeEscapeNotification(system.parameters);
-        break;
-      case 'mechanical_vehicles':
-        result = _analyzeMechanicalVehicles(system.parameters);
-        break;
-      case 'demolition_masks':
-        result = _analyzeDemolitionMasks(system.parameters);
-        break;
+  // Phân tích tất cả hệ thống PCCC
+  Future<void> analyzeAllSystems() async {
+    _setAnalyzing(true);
+    try {
+      _analysisResults = await PCCCAnalysisService.analyzeAllSystems(_inputData);
+      _clearError();
+    } catch (e) {
+      _setError('Lỗi khi phân tích hệ thống PCCC: $e');
+    } finally {
+      _setAnalyzing(false);
     }
+  }
 
-    // Xác định status dựa trên kết quả
-    if (result.contains('Bắt buộc')) {
-      status = 'required';
-    } else if (result.contains('Nên cân nhắc') || result.contains('Khuyến nghị')) {
-      status = 'consider';
+  // Lấy gợi ý cho hệ thống cụ thể
+  Future<PCCCSuggestions?> getSuggestions(String systemId) async {
+    try {
+      return await PCCCAnalysisService.getSuggestions(systemId);
+    } catch (e) {
+      return null;
     }
+  }
 
-    return PCCCCheckResult(
-      category: system.name,
-      result: result,
-      status: status,
-      reference: reference,
+  // Tạo báo cáo tổng hợp
+  Map<String, dynamic> generateSummaryReport() {
+    if (_analysisResults.isEmpty) {
+      return {};
+    }
+    return PCCCAnalysisService.generateSummaryReport(_analysisResults);
+  }
+
+  // Reset tất cả dữ liệu
+  void resetAll() {
+    _inputData.loaiNha = null;
+    _inputData.chieuCao = null;
+    _inputData.soTang = null;
+    _inputData.tongDienTichSan = null;
+    _inputData.khoiTich = null;
+    _inputData.hangNguyHiemChay = null;
+    _inputData.coTangHam = null;
+    _inputData.soNguoiSuDung = null;
+    _inputData.coPhongNgu = null;
+    _inputData.coPhongOnLon = null;
+    _inputData.dienTichKhuVuc = null;
+    _inputData.coVatCan = null;
+    _inputData.khuVucKhoTiepCan = null;
+    _inputData.loaiBinhChuaChay = null;
+    _inputData.khoangCachDenTruNuocCongCong = null;
+    _inputData.khaNangKetNoiNuocSinhHoat = null;
+    _inputData.suDungChatKiNuoc = null;
+    _inputData.loaiCoSo = null;
+    _inputData.dienTichCoSo = null;
+    _inputData.loaiPhuongTienCoGioi = null;
+    _inputData.viTriBoTriPhongTruc = null;
+    _inputData.coKhuyenKhichMatNaLocDoc = null;
+    _inputData.mucDichSuDungDacBiet = null;
+    
+    _analysisResults.clear();
+    _clearError();
+    notifyListeners();
+  }
+
+  // Lấy kết quả theo trạng thái
+  List<PCCCCheckResult> getResultsByStatus(String status) {
+    return _analysisResults.where((result) => result.status == status).toList();
+  }
+
+  // Kiểm tra xem có dữ liệu đầu vào cơ bản không
+  bool get hasBasicInput {
+    return _inputData.loaiNha != null || 
+           _inputData.chieuCao != null || 
+           _inputData.tongDienTichSan != null;
+  }
+
+  // Helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setAnalyzing(bool analyzing) {
+    _isAnalyzing = analyzing;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  // Lấy danh sách subcategories cho building type
+  List<BuildingSubcategory> getSubcategoriesForBuildingType(String buildingTypeId) {
+    final buildingType = _buildingTypes.firstWhere(
+      (type) => type.id == buildingTypeId,
+      orElse: () => BuildingType(id: '', name: '', subcategories: []),
     );
+    return buildingType.subcategories;
   }
 
-  String _analyzeAutoFireSuppression(Map<String, dynamic> params) {
-    final loaiNha = params['loaiNha'] as LoaiNha?;
-    final chieuCao = params['chieuCao'] as double?;
-    final hangNguyHiem = params['hangNguyHiemChay'] as HangNguyHiemChay?;
-
-    if (loaiNha == null || chieuCao == null) {
-      return 'Vui lòng nhập đầy đủ thông tin loại nhà và chiều cao';
+  // Validate input data
+  List<String> validateInput() {
+    final errors = <String>[];
+    
+    if (_inputData.loaiNha == null || _inputData.loaiNha!.isEmpty) {
+      errors.add('Vui lòng chọn loại công trình');
     }
-
-    if (chieuCao > 100) {
-      return 'Bắt buộc lắp đặt hệ thống chữa cháy tự động cho công trình trên 100m';
-    } else if (chieuCao > 25) {
-      return 'Nên cân nhắc lắp đặt hệ thống chữa cháy tự động cho công trình từ 25-100m';
-    } else if (hangNguyHiem == HangNguyHiemChay.d || hangNguyHiem == HangNguyHiemChay.e) {
-      return 'Bắt buộc lắp đặt do hạng nguy hiểm cháy cao';
-    } else {
-      return 'Không bắt buộc lắp đặt hệ thống chữa cháy tự động';
+    
+    if (_inputData.chieuCao != null && _inputData.chieuCao! < 0) {
+      errors.add('Chiều cao không thể âm');
     }
+    
+    if (_inputData.soTang != null && _inputData.soTang! < 0) {
+      errors.add('Số tầng không thể âm');
+    }
+    
+    if (_inputData.tongDienTichSan != null && _inputData.tongDienTichSan! < 0) {
+      errors.add('Diện tích sàn không thể âm');
+    }
+    
+    if (_inputData.khoiTich != null && _inputData.khoiTich! < 0) {
+      errors.add('Khối tích không thể âm');
+    }
+    
+    return errors;
   }
 
-  String _analyzeAutoFireAlarm(Map<String, dynamic> params) {
-    final loaiNha = params['loaiNha'] as LoaiNha?;
-    final chieuCao = params['chieuCao'] as double?;
-    final soTang = params['soTang'] as int?;
-
-    if (loaiNha == null || chieuCao == null) {
-      return 'Vui lòng nhập đầy đủ thông tin loại nhà và chiều cao';
-    }
-
-    if (chieuCao > 50 || (soTang != null && soTang > 17)) {
-      return 'Bắt buộc lắp đặt hệ thống báo cháy tự động';
-    } else if (chieuCao > 25 || (soTang != null && soTang > 7)) {
-      return 'Nên cân nhắc lắp đặt hệ thống báo cháy tự động';
-    } else {
-      return 'Không bắt buộc lắp đặt hệ thống báo cháy tự động';
-    }
-  }
-
-  String _analyzeExternalWaterSupply(Map<String, dynamic> params) {
-    final coHeThong = params['coHeThongNuocNgoaiNha'] as bool;
-    final loaiNha = params['loaiNha'] as LoaiNha?;
-
-    if (coHeThong) {
-      return 'Đã có hệ thống cấp nước ngoài nhà';
-    } else if (loaiNha == LoaiNha.sanXuat || loaiNha == LoaiNha.khoThap) {
-      return 'Bắt buộc có hệ thống cấp nước chữa cháy ngoài nhà';
-    } else {
-      return 'Nên cân nhắc lắp đặt hệ thống cấp nước ngoài nhà';
-    }
-  }
-
-  String _analyzeInternalHydrant(Map<String, dynamic> params) {
-    final loaiNha = params['loaiNha'] as LoaiNha?;
-    final chieuCao = params['chieuCao'] as double?;
-
-    if (loaiNha == null || chieuCao == null) {
-      return 'Vui lòng nhập đầy đủ thông tin';
-    }
-
-    if (chieuCao > 25) {
-      return 'Bắt buộc lắp đặt hệ thống họng nước chữa cháy trong nhà';
-    } else {
-      return 'Không bắt buộc lắp đặt hệ thống họng nước trong nhà';
-    }
-  }
-
-  String _analyzeInitialFireEquipment(Map<String, dynamic> params) {
-    return 'Bắt buộc trang bị thiết bị chữa cháy ban đầu cho mọi công trình';
-  }
-
-  String _analyzeEscapeNotification(Map<String, dynamic> params) {
-    final loaiNha = params['loaiNha'] as LoaiNha?;
-    final soNguoi = params['soNguoiSuDung'] as int?;
-
-    if (loaiNha == LoaiNha.khachSan || loaiNha == LoaiNha.benhVien) {
-      return 'Bắt buộc trang bị thiết bị thoát nạn và thông báo';
-    } else if (soNguoi != null && soNguoi > 100) {
-      return 'Bắt buộc trang bị do số lượng người sử dụng lớn';
-    } else {
-      return 'Nên cân nhắc trang bị thiết bị thoát nạn và thông báo';
-    }
-  }
-
-  String _analyzeMechanicalVehicles(Map<String, dynamic> params) {
-    final dienTich = params['dienTichCoSo'] as double?;
-
-    if (dienTich != null && dienTich > 10000) {
-      return 'Bắt buộc có phương tiện chữa cháy cơ giới';
-    } else {
-      return 'Không bắt buộc có phương tiện chữa cháy cơ giới';
-    }
-  }
-
-  String _analyzeDemolitionMasks(Map<String, dynamic> params) {
-    final loaiNha = params['loaiNha'] as LoaiNha?;
-
-    if (loaiNha == LoaiNha.sanXuat || loaiNha == LoaiNha.khoThap) {
-      return 'Bắt buộc trang bị thiết bị phá dỡ thô sơ và mặt nạ phòng độc';
-    } else {
-      return 'Nên cân nhắc trang bị thiết bị phá dỡ và mặt nạ phòng độc';
-    }
+  // Export data as JSON
+  Map<String, dynamic> exportData() {
+    return {
+      'inputData': _inputData.toJson(),
+      'analysisResults': _analysisResults.map((result) => result.toJson()).toList(),
+      'summaryReport': generateSummaryReport(),
+      'timestamp': DateTime.now().toIso8601String(),
+    };
   }
 } 
