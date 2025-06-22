@@ -3,6 +3,7 @@ import 'package:gtd_network/gtd_network.dart';
 import '../models/document_model.dart';
 import '../models/api_error_model.dart';
 import '../api_client/base_api_client.dart';
+import '../api_client/pccc_environment.dart';
 
 abstract class DocumentRepository {
   Future<ApiResponse<DocumentListResponse>> getDocuments({
@@ -58,7 +59,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
     );
 
     return await _apiClient.get<DocumentListResponse>(
-      '/items/documents',
+      PcccEndpoints.documents,
       queryParameters: queryParams,
       fromJson: (json) => DocumentListResponse.fromJson(json),
     );
@@ -82,7 +83,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
     );
 
     return await _apiClient.get<DocumentSingleResponse>(
-      '/items/documents/$id',
+      PcccEndpoints.documentById(id),
       queryParameters: queryParams,
       fromJson: (json) => DocumentSingleResponse.fromJson(json),
     );

@@ -1,12 +1,13 @@
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:gtd_network/gtd_network.dart';
+import 'package:dio/dio.dart';
 
 enum PcccEnvironmentType { development, staging, production }
 
 class PcccEnvironment extends BaseEnvironment {
-  static const String _devBaseUrl = 'https://dashboard.pccc40.com';
-  static const String _stagingBaseUrl = 'https://dashboard.pccc40.com';
-  static const String _prodBaseUrl = 'https://dashboard.pccc40.com';
+  static const String _devBaseUrl = 'dashboard.pccc40.com';
+  static const String _stagingBaseUrl = 'dashboard.pccc40.com';
+  static const String _prodBaseUrl = 'dashboard.pccc40.com';
 
   PcccEnvironment._({
     required String baseUrl,
@@ -59,9 +60,9 @@ class PcccEnvironment extends BaseEnvironment {
 // PCCC API Endpoints
 class PcccEndpoints {
   // Base paths
-  static const String items = '/items';
-  static const String assets = '/assets';
-  static const String api = '/api';
+  static const String items = 'items';
+  static const String assets = 'assets';
+  static const String api = 'api';
 
   // Items endpoints
   static const String articles = '$items/articles';

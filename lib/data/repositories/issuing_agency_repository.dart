@@ -3,6 +3,7 @@ import 'package:gtd_network/gtd_network.dart';
 import '../models/issuing_agency_model.dart';
 import '../models/api_error_model.dart';
 import '../api_client/base_api_client.dart';
+import '../api_client/pccc_environment.dart';
 
 abstract class IssuingAgencyRepository {
   Future<ApiResponse<IssuingAgencyListResponse>> getIssuingAgencies({
@@ -58,7 +59,7 @@ class IssuingAgencyRepositoryImpl implements IssuingAgencyRepository {
     );
 
     return await _apiClient.get<IssuingAgencyListResponse>(
-      '/items/issuing_agency',
+      PcccEndpoints.issuingAgencies,
       queryParameters: queryParams,
       fromJson: (json) => IssuingAgencyListResponse.fromJson(json),
     );
@@ -82,7 +83,7 @@ class IssuingAgencyRepositoryImpl implements IssuingAgencyRepository {
     );
 
     return await _apiClient.get<IssuingAgencySingleResponse>(
-      '/items/issuing_agency/$id',
+      PcccEndpoints.issuingAgencyById(id),
       queryParameters: queryParams,
       fromJson: (json) => IssuingAgencySingleResponse.fromJson(json),
     );
@@ -90,29 +91,40 @@ class IssuingAgencyRepositoryImpl implements IssuingAgencyRepository {
 
   // Mock data methods
   ApiResponse<IssuingAgencyListResponse> _getMockIssuingAgencies() {
-    final mockAgencies = [
-      IssuingAgencyModel(id: 1, agencyName: 'Bộ Công an'),
-      IssuingAgencyModel(id: 2, agencyName: 'Chính phủ'),
-      IssuingAgencyModel(id: 3, agencyName: 'Bộ Xây dựng'),
-      IssuingAgencyModel(id: 4, agencyName: 'Bộ Khoa học và Công nghệ'),
-      IssuingAgencyModel(id: 5, agencyName: 'UBND Thành phố Hồ Chí Minh'),
+    final mockIssuingAgencies = [
+      IssuingAgencyModel(
+        id: 1,
+        agencyName: 'Bộ Công an',
+      ),
+      IssuingAgencyModel(
+        id: 2,
+        agencyName: 'Bộ Xây dựng',
+      ),
+      IssuingAgencyModel(
+        id: 3,
+        agencyName: 'Chính phủ',
+      ),
+      IssuingAgencyModel(
+        id: 4,
+        agencyName: 'Quốc hội',
+      ),
     ];
 
     final response = IssuingAgencyListResponse(
-      data: mockAgencies,
-      meta: IssuingAgencyMetadata(totalCount: mockAgencies.length, filterCount: mockAgencies.length),
+      data: mockIssuingAgencies,
+      meta: IssuingAgencyMetadata(totalCount: mockIssuingAgencies.length, filterCount: mockIssuingAgencies.length),
     );
 
     return ApiResponse.success(response);
   }
 
   ApiResponse<IssuingAgencySingleResponse> _getMockIssuingAgency(int id) {
-    final mockAgency = IssuingAgencyModel(
+    final mockIssuingAgency = IssuingAgencyModel(
       id: id,
       agencyName: 'Bộ Công an',
     );
 
-    final response = IssuingAgencySingleResponse(data: mockAgency);
+    final response = IssuingAgencySingleResponse(data: mockIssuingAgency);
     return ApiResponse.success(response);
   }
 } 

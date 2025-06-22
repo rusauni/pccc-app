@@ -3,6 +3,7 @@ import 'package:gtd_network/gtd_network.dart';
 import '../models/document_type_model.dart';
 import '../models/api_error_model.dart';
 import '../api_client/base_api_client.dart';
+import '../api_client/pccc_environment.dart';
 
 abstract class DocumentTypeRepository {
   Future<ApiResponse<DocumentTypeListResponse>> getDocumentTypes({
@@ -58,7 +59,7 @@ class DocumentTypeRepositoryImpl implements DocumentTypeRepository {
     );
 
     return await _apiClient.get<DocumentTypeListResponse>(
-      '/items/document_type',
+      PcccEndpoints.documentTypes,
       queryParameters: queryParams,
       fromJson: (json) => DocumentTypeListResponse.fromJson(json),
     );
@@ -82,7 +83,7 @@ class DocumentTypeRepositoryImpl implements DocumentTypeRepository {
     );
 
     return await _apiClient.get<DocumentTypeSingleResponse>(
-      '/items/document_type/$id',
+      PcccEndpoints.documentTypeById(id),
       queryParameters: queryParams,
       fromJson: (json) => DocumentTypeSingleResponse.fromJson(json),
     );
@@ -91,11 +92,22 @@ class DocumentTypeRepositoryImpl implements DocumentTypeRepository {
   // Mock data methods
   ApiResponse<DocumentTypeListResponse> _getMockDocumentTypes() {
     final mockDocumentTypes = [
-      DocumentTypeModel(id: 1, documentTypeName: 'Thông tư'),
-      DocumentTypeModel(id: 2, documentTypeName: 'Nghị định'),
-      DocumentTypeModel(id: 3, documentTypeName: 'Quy chuẩn'),
-      DocumentTypeModel(id: 4, documentTypeName: 'Tiêu chuẩn'),
-      DocumentTypeModel(id: 5, documentTypeName: 'Hướng dẫn'),
+      DocumentTypeModel(
+        id: 1,
+        documentTypeName: 'Luật',
+      ),
+      DocumentTypeModel(
+        id: 2,
+        documentTypeName: 'Thông tư',
+      ),
+      DocumentTypeModel(
+        id: 3,
+        documentTypeName: 'Quyết định',
+      ),
+      DocumentTypeModel(
+        id: 4,
+        documentTypeName: 'Nghị định',
+      ),
     ];
 
     final response = DocumentTypeListResponse(
@@ -109,7 +121,7 @@ class DocumentTypeRepositoryImpl implements DocumentTypeRepository {
   ApiResponse<DocumentTypeSingleResponse> _getMockDocumentType(int id) {
     final mockDocumentType = DocumentTypeModel(
       id: id,
-      documentTypeName: 'Thông tư',
+      documentTypeName: 'Luật',
     );
 
     final response = DocumentTypeSingleResponse(data: mockDocumentType);

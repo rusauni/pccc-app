@@ -3,6 +3,7 @@ import 'package:gtd_network/gtd_network.dart';
 import '../models/article_model.dart';
 import '../models/api_error_model.dart';
 import '../api_client/base_api_client.dart';
+import '../api_client/pccc_environment.dart';
 
 abstract class ArticleRepository {
   Future<ApiResponse<ArticleListResponse>> getArticles({
@@ -58,7 +59,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
     );
 
     return await _apiClient.get<ArticleListResponse>(
-      '/items/articles',
+      PcccEndpoints.articles,
       queryParameters: queryParams,
       fromJson: (json) => ArticleListResponse.fromJson(json),
     );
@@ -82,7 +83,7 @@ class ArticleRepositoryImpl implements ArticleRepository {
     );
 
     return await _apiClient.get<ArticleSingleResponse>(
-      '/items/articles/$id',
+      PcccEndpoints.articleById(id),
       queryParameters: queryParams,
       fromJson: (json) => ArticleSingleResponse.fromJson(json),
     );

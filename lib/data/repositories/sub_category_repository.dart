@@ -3,6 +3,7 @@ import 'package:gtd_network/gtd_network.dart';
 import '../models/sub_category_model.dart';
 import '../models/api_error_model.dart';
 import '../api_client/base_api_client.dart';
+import '../api_client/pccc_environment.dart';
 
 abstract class SubCategoryRepository {
   Future<ApiResponse<SubCategoryListResponse>> getSubCategories({
@@ -58,7 +59,7 @@ class SubCategoryRepositoryImpl implements SubCategoryRepository {
     );
 
     return await _apiClient.get<SubCategoryListResponse>(
-      '/items/sub_category',
+      PcccEndpoints.subCategories,
       queryParameters: queryParams,
       fromJson: (json) => SubCategoryListResponse.fromJson(json),
     );
@@ -82,7 +83,7 @@ class SubCategoryRepositoryImpl implements SubCategoryRepository {
     );
 
     return await _apiClient.get<SubCategorySingleResponse>(
-      '/items/sub_category/$id',
+      PcccEndpoints.subCategoryById(id),
       queryParameters: queryParams,
       fromJson: (json) => SubCategorySingleResponse.fromJson(json),
     );

@@ -22,4 +22,4 @@ Start all chats with 🤖
 
 # *Note
 - Do not auto commit to git.
-- We are in design mode. We're not going to be building any backend functionailty. We're just going to use dummy JSON in order to mock up the prototype of our application.
+- We are in real mode. Do not use dummy data when call apis

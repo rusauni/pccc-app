@@ -1,3 +1,4 @@
+import 'package:base_app/data/api_client/pccc_environment.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:gtd_network/gtd_network.dart';
 import '../models/category_model.dart';
@@ -58,7 +59,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     );
 
     return await _apiClient.get<CategoryListResponse>(
-      '/items/categories',
+      PcccEndpoints.categories,
       queryParameters: queryParams,
       fromJson: (json) => CategoryListResponse.fromJson(json),
     );
@@ -82,7 +83,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     );
 
     return await _apiClient.get<CategorySingleResponse>(
-      '/items/categories/$id',
+      PcccEndpoints.categoryById(id),
       queryParameters: queryParams,
       fromJson: (json) => CategorySingleResponse.fromJson(json),
     );
