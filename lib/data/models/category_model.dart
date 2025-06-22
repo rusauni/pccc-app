@@ -62,11 +62,15 @@ class CategoryListResponse {
   });
 
   factory CategoryListResponse.fromJson(Map<String, dynamic> json) {
+    final dataList = (json['data'] as List<dynamic>)
+        .map((item) => CategoryModel.fromJson(item))
+        .toList();
+    
     return CategoryListResponse(
-      data: (json['data'] as List<dynamic>)
-          .map((item) => CategoryModel.fromJson(item))
-          .toList(),
-      meta: CategoryMetadata.fromJson(json['meta']),
+      data: dataList,
+      meta: json['meta'] != null 
+          ? CategoryMetadata.fromJson(json['meta'])
+          : CategoryMetadata(totalCount: dataList.length, filterCount: dataList.length),
     );
   }
 }

@@ -1,76 +1,211 @@
-import 'package:flutter/material.dart' hide ButtonStyle, TextButton;
+import 'package:flutter/material.dart' hide ButtonStyle, TextButton, CircularProgressIndicator;
 import 'package:vnl_common_ui/vnl_ui.dart';
+import 'package:gtd_helper/helper/gtd_app_logger.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../data/repositories/article_repository.dart';
+import '../../../../data/api_client/base_api_client.dart';
+import '../../../../data/api_client/pccc_environment.dart';
+import '../../../../data/models/article_model.dart';
 
-class NewsTab extends StatelessWidget {
-  NewsTab({super.key});
+class NewsTab extends StatefulWidget {
+  const NewsTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: EdgeInsets.all(16),
-      itemCount: _dummyNews.length,
-      separatorBuilder: (context, index) => Gap(16),
-      itemBuilder: (context, index) {
-        final news = _dummyNews[index];
-        return _buildNewsCard(
-          title: news['title']!,
-          description: news['description']!,
-          date: news['date']!,
-          imageUrl: news['imageUrl']!,
-        );
-      },
+  State<NewsTab> createState() => _NewsTabState();
+}
+
+class _NewsTabState extends State<NewsTab> {
+  late final ArticleRepository _articleRepository;
+  List<ArticleModel> _articles = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeRepository();
+    _loadArticles();
+  }
+
+  void _initializeRepository() {
+    final apiClient = BaseApiClient(
+      environment: PcccEnvironment.development(),
+    );
+    _articleRepository = ArticleRepositoryImpl(
+      apiClient: apiClient,
+      useMockData: false, // Use real API as per cursor rules - real mode
     );
   }
 
-  Widget _buildNewsCard({
-    required String title,
-    required String description,
-    required String date,
-    required String imageUrl,
-  }) {
+  Future<void> _loadArticles() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _articleRepository.getArticles(
+        limit: 10,
+        sort: ['-date_created'], // Sort by newest first
+      );
+
+      if (response.isSuccess && response.data != null) {
+        setState(() {
+          _articles = response.data!.data;
+          _isLoading = false;
+        });
+      } else {
+        Logger.e('Failed to load articles from API: ${response.error?.error.message}');
+        setState(() {
+          _errorMessage = 'Không thể tải tin tức từ máy chủ';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      Logger.e('Exception loading articles: $e');
+      setState(() {
+        _errorMessage = 'Lỗi kết nối: ${e.toString()}';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: VNLTheme.of(context).colorScheme.destructive,
+            ),
+            const Gap(16),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: VNLTheme.of(context).colorScheme.destructive,
+              ),
+            ),
+            const Gap(16),
+            VNLButton.primary(
+              onPressed: _loadArticles,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_articles.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.article_outlined,
+              size: 64,
+              color: VNLTheme.of(context).colorScheme.mutedForeground,
+            ),
+            const Gap(16),
+            Text(
+              'Chưa có tin tức nào',
+              style: TextStyle(
+                color: VNLTheme.of(context).colorScheme.mutedForeground,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadArticles,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: _articles.length,
+        separatorBuilder: (context, index) => const Gap(16),
+        itemBuilder: (context, index) {
+          final article = _articles[index];
+          return _buildNewsCard(article);
+        },
+      ),
+    );
+  }
+
+  Widget _buildNewsCard(ArticleModel article) {
     return VNLCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              imageUrl,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey[600]),
-                );
-              },
+          if (article.thumbnail != null)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                article.thumbnail!,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 180,
+                    color: VNLTheme.of(context).colorScheme.muted,
+                    child: Icon(
+                      Icons.image_not_supported,
+                      size: 50,
+                      color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  date,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  description,
-                  style: TextStyle(fontSize: 14),
-                  maxLines: 3,
+                  article.title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 12),
-                VNLButton(style: ButtonStyle.ghost(), onPressed: () {}, child: Text('Đọc thêm')),
+                const Gap(8),
+                if (article.dateCreated != null)
+                  Text(
+                    _formatDate(article.dateCreated!),
+                    style: TextStyle(
+                      color: VNLTheme.of(context).colorScheme.mutedForeground,
+                      fontSize: 12,
+                    ),
+                  ),
+                const Gap(8),
+                if (article.summary != null)
+                  Text(
+                    article.summary!,
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                const Gap(12),
+                VNLButton.ghost(
+                  onPressed: () {
+                    if (article.id != null) {
+                      context.push('/news/${article.id}');
+                    }
+                  },
+                  child: const Text('Đọc thêm'),
+                ),
               ],
             ),
           ),
@@ -79,41 +214,12 @@ class NewsTab extends StatelessWidget {
     );
   }
 
-  final List<Map<String, String>> _dummyNews = [
-    {
-      'title': 'Diễn tập PCCC tại khu chung cư cao tầng',
-      'description':
-          'Sáng ngày 15/5/2025, Phòng Cảnh sát PCCC&CNCH Công an TP đã tổ chức buổi diễn tập phương án chữa cháy và cứu nạn cứu hộ tại khu chung cư cao tầng...',
-      'date': '15/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-    },
-    {
-      'title': 'Cập nhật quy định mới về PCCC năm 2025',
-      'description':
-          'Bộ Công an vừa ban hành Thông tư số 25/2025/TT-BCA quy định về phòng cháy, chữa cháy đối với khu dân cư, hộ gia đình, nhà để ở kết hợp sản xuất, kinh doanh...',
-      'date': '10/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-    },
-    {
-      'title': 'Hướng dẫn sử dụng bình chữa cháy đúng cách',
-      'description':
-          'Bình chữa cháy là thiết bị quan trọng trong công tác phòng cháy chữa cháy. Tuy nhiên, không phải ai cũng biết cách sử dụng bình chữa cháy đúng cách...',
-      'date': '05/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80',
-    },
-    {
-      'title': 'Tập huấn PCCC cho học sinh các trường THPT',
-      'description':
-          'Nhằm nâng cao ý thức và kỹ năng phòng cháy chữa cháy cho học sinh, Phòng Cảnh sát PCCC&CNCH đã phối hợp với Sở Giáo dục và Đào tạo tổ chức chương trình tập huấn...',
-      'date': '01/05/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1503428593586-e225b39bddfe?w=800&q=80',
-    },
-    {
-      'title': 'Kiểm tra an toàn PCCC tại các khu công nghiệp',
-      'description':
-          'Đoàn kiểm tra liên ngành về PCCC đã tiến hành kiểm tra đột xuất tại các khu công nghiệp trên địa bàn tỉnh. Qua kiểm tra phát hiện nhiều tồn tại, thiếu sót về công tác PCCC...',
-      'date': '25/04/2025',
-      'imageUrl': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
-    },
-  ];
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return dateString;
+    }
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:base_app/pages/news/view/news_view.dart';
 import 'package:base_app/pages/news/view_model/news_page_view_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
@@ -13,6 +14,11 @@ class NewsPage extends PageViewController<NewsPageViewModel> {
 class NewsPageState extends PageViewControllerState<NewsPage> {
   @override
   Widget buildBody(BuildContext pageContext) {
-    return NewsView(viewModel: widget.viewModel.newsViewModel);
+    return RefreshIndicator(
+      onRefresh: () async {
+        await widget.viewModel.newsViewModel.refreshNews();
+      },
+      child: NewsView(viewModel: widget.viewModel.newsViewModel),
+    );
   }
 } 

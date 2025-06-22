@@ -1,24 +1,46 @@
-import 'package:vnl_common_ui/vnl_ui.dart';
-import 'article_model.dart';
+
+import 'package:flutter/foundation.dart';
+import '../../utils/url_helper.dart';
 
 class FeaturedArticlesModel {
   final int? id;
   final String? title;
   final List<int>? articleIds;
+  final List<FeaturedArticleItem>? articles;
 
   FeaturedArticlesModel({
     this.id,
     this.title,
     this.articleIds,
+    this.articles,
   });
 
   factory FeaturedArticlesModel.fromJson(Map<String, dynamic> json) {
+    List<FeaturedArticleItem>? articlesList;
+    List<int>? articleIdsList;
+
+    if (json['articles'] != null) {
+      if (json['articles'] is List) {
+        final articlesData = json['articles'] as List;
+        if (articlesData.isNotEmpty) {
+          if (articlesData.first is Map<String, dynamic>) {
+            // New structure: articles contains full article objects
+            articlesList = articlesData
+                .map((item) => FeaturedArticleItem.fromJson(item))
+                .toList();
+          } else {
+            // Old structure: articles contains just IDs
+            articleIdsList = List<int>.from(articlesData);
+          }
+        }
+      }
+    }
+
     return FeaturedArticlesModel(
       id: json['id'],
       title: json['title'],
-      articleIds: json['articles'] != null 
-          ? List<int>.from(json['articles']) 
-          : null,
+      articleIds: articleIdsList,
+      articles: articlesList,
     );
   }
 
@@ -26,7 +48,7 @@ class FeaturedArticlesModel {
     return {
       'id': id,
       'title': title,
-      'articles': articleIds,
+      'articles': articles?.map((item) => item.toJson()).toList() ?? articleIds,
     };
   }
 
@@ -34,12 +56,149 @@ class FeaturedArticlesModel {
     int? id,
     String? title,
     List<int>? articleIds,
+    List<FeaturedArticleItem>? articles,
   }) {
     return FeaturedArticlesModel(
       id: id ?? this.id,
       title: title ?? this.title,
       articleIds: articleIds ?? this.articleIds,
+      articles: articles ?? this.articles,
     );
+  }
+}
+
+class FeaturedArticleItem {
+  final int? id;
+  final int? featuredArticlesId;
+  final FeaturedArticleData? articlesId;
+
+  FeaturedArticleItem({
+    this.id,
+    this.featuredArticlesId,
+    this.articlesId,
+  });
+
+  factory FeaturedArticleItem.fromJson(Map<String, dynamic> json) {
+    try {
+      return FeaturedArticleItem(
+        id: json['id'],
+        featuredArticlesId: json['featured_articles_id'],
+        articlesId: json['articles_id'] != null 
+            ? FeaturedArticleData.fromJson(json['articles_id'])
+            : null,
+      );
+         } catch (e, stackTrace) {
+       // Use debug mode print for development
+       if (kDebugMode) {
+         print('Error parsing FeaturedArticleItem: $e');
+         print('JSON data: $json');
+         print('Stack trace: $stackTrace');
+       }
+       rethrow;
+     }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'featured_articles_id': featuredArticlesId,
+      'articles_id': articlesId?.toJson(),
+    };
+  }
+}
+
+class FeaturedArticleData {
+  final int? id;
+  final String? title;
+  final String? slug;
+  final String? thumbnail;
+  final String? dateCreated;
+  final FeaturedCategoryData? category;
+
+  FeaturedArticleData({
+    this.id,
+    this.title,
+    this.slug,
+    this.thumbnail,
+    this.dateCreated,
+    this.category,
+  });
+
+    factory FeaturedArticleData.fromJson(Map<String, dynamic> json) {
+    try {
+      // Handle thumbnail - it might be an object or string
+      String? thumbnailValue;
+      if (json['thumbnail'] != null) {
+        if (json['thumbnail'] is String) {
+          thumbnailValue = json['thumbnail'];
+        } else if (json['thumbnail'] is Map<String, dynamic>) {
+          // If thumbnail is an object, try to get the file ID or URL
+          final thumbnailObj = json['thumbnail'] as Map<String, dynamic>;
+          thumbnailValue = thumbnailObj['id']?.toString() ?? thumbnailObj['url']?.toString();
+        }
+      }
+
+      // Convert thumbnail to full URL if needed
+      thumbnailValue = UrlHelper.formatThumbnailUrl(thumbnailValue);
+
+      return FeaturedArticleData(
+        id: json['id'],
+        title: json['title']?.toString(),
+        slug: json['slug']?.toString(),
+        thumbnail: thumbnailValue,
+        dateCreated: json['date_created']?.toString(),
+        category: json['category'] != null 
+            ? FeaturedCategoryData.fromJson(json['category'])
+            : null,
+      );
+    } catch (e, stackTrace) {
+      // Use debug mode print for development
+      if (kDebugMode) {
+        print('Error parsing FeaturedArticleData: $e');
+        print('JSON data: $json');
+        print('Stack trace: $stackTrace');
+      }
+      rethrow;
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'slug': slug,
+      'thumbnail': thumbnail,
+      'date_created': dateCreated,
+      'category': category?.toJson(),
+    };
+  }
+}
+
+class FeaturedCategoryData {
+  final int? id;
+  final String? name;
+  final String? slug;
+
+  FeaturedCategoryData({
+    this.id,
+    this.name,
+    this.slug,
+  });
+
+  factory FeaturedCategoryData.fromJson(Map<String, dynamic> json) {
+    return FeaturedCategoryData(
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? ''),
+      name: json['name']?.toString(),
+      slug: json['slug']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'slug': slug,
+    };
   }
 }
 
@@ -93,11 +252,15 @@ class FeaturedArticlesListResponse {
   });
 
   factory FeaturedArticlesListResponse.fromJson(Map<String, dynamic> json) {
+    final dataList = (json['data'] as List<dynamic>)
+        .map((item) => FeaturedArticlesModel.fromJson(item))
+        .toList();
+    
     return FeaturedArticlesListResponse(
-      data: (json['data'] as List<dynamic>)
-          .map((item) => FeaturedArticlesModel.fromJson(item))
-          .toList(),
-      meta: FeaturedArticlesMetadata.fromJson(json['meta']),
+      data: dataList,
+      meta: json['meta'] != null 
+          ? FeaturedArticlesMetadata.fromJson(json['meta'])
+          : FeaturedArticlesMetadata(totalCount: dataList.length, filterCount: dataList.length),
     );
   }
 }

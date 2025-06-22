@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' as material;
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'editor_js_models.dart';
@@ -363,32 +363,100 @@ class EditorJSFlutterWidgets {
   static Widget _renderEmbed(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = EmbedBlockData.fromJson(block.data);
     
-    return Padding(
-      padding: opts.blockPadding,
-      child: VNLButton.outline(
-        onPressed: () => _launchUrl(data.source),
-        child: SizedBox(
-          height: 200,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _getEmbedIcon(data.service),
-                size: 48,
+    // Kiểm tra xem có phải YouTube URL không
+    final RegExp youtubeRegex = RegExp(
+      r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})',
+      caseSensitive: false,
+    );
+    final Match? match = youtubeRegex.firstMatch(data.source);
+    
+    if (match != null) {
+      final String videoId = match.group(1)!;
+      final String thumbnailUrl = 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
+      
+      // Render YouTube thumbnail với play button
+      return Padding(
+        padding: opts.blockPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () async {
+                final Uri youtubeUri = Uri.parse(data.source);
+                if (await canLaunchUrl(youtubeUri)) {
+                  await launchUrl(youtubeUri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: NetworkImage(thumbnailUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF0000), // YouTube red color
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: VNLTheme.of(opts.context).colorScheme.muted.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      LucideIcons.play,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
               ),
+            ),
+            if (data.caption != null && data.caption!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text('Nội dung nhúng ${data.service}').semiBold,
-              const SizedBox(height: 4),
-              Text('Nhấn để mở').textMuted.textSmall,
-              if (data.caption != null && data.caption!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(data.caption!).textMuted.textCenter,
-              ],
+              Text(data.caption!).textMuted.textSmall,
             ],
+          ],
+        ),
+      );
+    } else {
+      // Fallback cho embed khác
+      return Padding(
+        padding: opts.blockPadding,
+        child: VNLButton.outline(
+          onPressed: () => _launchUrl(data.source),
+          child: SizedBox(
+            height: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _getEmbedIcon(data.service),
+                  size: 48,
+                ),
+                const SizedBox(height: 8),
+                Text('Nội dung nhúng ${data.service}').semiBold,
+                const SizedBox(height: 4),
+                Text('Nhấn để mở').textMuted.textSmall,
+                if (data.caption != null && data.caption!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(data.caption!).textMuted.textCenter,
+                ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   // Checklist block
@@ -570,35 +638,103 @@ class EditorJSFlutterWidgets {
   static Widget _renderVideo(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = VideoBlockData.fromJson(block.data);
     
-    return Padding(
-      padding: opts.blockPadding,
-      child: VNLButton.outline(
-        onPressed: () => _launchUrl(data.url),
-        child: SizedBox(
-          height: 200,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.play_circle_outline,
-                size: 64,
-              ),
-              const SizedBox(height: 8),
-              Text('Video').semiBold,
-              const SizedBox(height: 4),
-              Text('Nhấn để phát').textMuted.textSmall,
-              if (data.caption != null && data.caption!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(data.caption!).textMuted.textCenter.singleLine.ellipsis,
+    // Kiểm tra xem có phải YouTube URL không
+    final RegExp youtubeRegex = RegExp(
+      r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})',
+      caseSensitive: false,
+    );
+    final Match? match = youtubeRegex.firstMatch(data.url);
+    
+    if (match != null) {
+      final String videoId = match.group(1)!;
+      final String thumbnailUrl = 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
+      
+      // Render YouTube thumbnail với play button
+      return Padding(
+        padding: opts.blockPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () async {
+                final Uri youtubeUri = Uri.parse(data.url);
+                if (await canLaunchUrl(youtubeUri)) {
+                  await launchUrl(youtubeUri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: NetworkImage(thumbnailUrl),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ],
+                child: Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF0000), // YouTube red color
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: VNLTheme.of(opts.context).colorScheme.muted.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      LucideIcons.play,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (data.caption != null && data.caption!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(data.caption!).textMuted.textSmall,
             ],
+          ],
+        ),
+      );
+    } else {
+      // Fallback cho video khác (không phải YouTube)
+      return Padding(
+        padding: opts.blockPadding,
+        child: VNLButton.outline(
+          onPressed: () => _launchUrl(data.url),
+          child: SizedBox(
+            height: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.play_circle_outline,
+                  size: 64,
+                ),
+                const SizedBox(height: 8),
+                Text('Video').semiBold,
+                const SizedBox(height: 4),
+                Text('Nhấn để phát').textMuted.textSmall,
+                if (data.caption != null && data.caption!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(data.caption!).textMuted.textCenter.singleLine.ellipsis,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   // Unknown block

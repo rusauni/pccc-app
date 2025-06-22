@@ -1,4 +1,5 @@
 import '../../../data/models/article_model.dart';
+import '../../../utils/url_helper.dart';
 import 'news_author_model.dart';
 import 'news_category_model.dart';
 
@@ -40,7 +41,7 @@ class NewsModel extends ArticleModel {
       userUpdated: json['user_updated'],
       dateUpdated: json['date_updated'],
       title: json['title'] ?? '',
-      thumbnail: json['thumbnail'],
+      thumbnail: UrlHelper.formatThumbnailUrl(json['thumbnail']?.toString()),
       content: json['content'],
       categoryId: json['category'],
       slug: json['slug'],

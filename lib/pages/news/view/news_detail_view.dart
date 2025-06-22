@@ -3,6 +3,9 @@ import 'package:base_app/pages/base/view/base_view.dart';
 import 'package:base_app/pages/news/view_model/news_detail_view_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 import '../model/news_model.dart';
+import '../../../utils/editor_js_parser/editor_js_parser.dart';
+import '../../../utils/editor_js_parser/editor_js_flutter_widgets.dart';
+import '../../../utils/editor_js_parser/editor_js_models.dart';
 
 class NewsDetailView extends BaseView<NewsDetailViewModel> {
   const NewsDetailView({super.key, required super.viewModel});
@@ -146,6 +149,7 @@ class NewsDetailView extends BaseView<NewsDetailViewModel> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (news.author?.name != null)
                         Text(
                           news.author?.name ?? 'Tác giả không xác định',
                           style: const TextStyle(
@@ -241,20 +245,111 @@ class NewsDetailView extends BaseView<NewsDetailViewModel> {
             const Gap(24),
           ],
 
-          // Content
+          // Content - Parse EditorJS blocks
           if (news.content != null) ...[
-            Text(
-              news.content!,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.6,
-              ),
-            ),
+            _buildEditorJSContent(context, news.content!),
             const Gap(24),
           ],
         ],
       ),
     );
+  }
+
+  Widget _buildEditorJSContent(BuildContext context, dynamic content) {
+    try {
+      EditorJSData editorData;
+      
+      if (content is Map<String, dynamic>) {
+        // Content đã là Map object từ API response
+        editorData = EditorJSParser.parseFromMap(content);
+      } else if (content is String) {
+        // Content là JSON string
+        if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
+          editorData = EditorJSParser.parseFromString(content);
+        } else {
+          // Fallback: Hiển thị như text thường nếu không phải EditorJS JSON
+          return Text(
+            content,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.6,
+            ),
+          );
+        }
+      } else {
+        // Unsupported content type
+        return Text(
+          'Định dạng nội dung không được hỗ trợ',
+          style: TextStyle(
+            fontSize: 16,
+            fontStyle: FontStyle.italic,
+            color: VNLTheme.of(context).colorScheme.mutedForeground,
+          ),
+        );
+      }
+      
+      // Render với custom options
+      final widgets = EditorJSFlutterWidgets.renderBlocks(
+        editorData,
+        options: EditorJSRenderOptions(
+          context: context,
+          blockSpacing: 16.0,
+          blockPadding: EdgeInsets.zero,
+          showErrors: true,
+          showUnknownBlocks: false,
+        ),
+      );
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widgets,
+      );
+    } catch (e) {
+      // Nếu parse lỗi, hiển thị như text thường và log error
+      debugPrint('Error parsing EditorJS content: $e');
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: VNLTheme.of(context).colorScheme.destructive.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: VNLTheme.of(context).colorScheme.destructive.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_outlined,
+                  size: 16,
+                  color: VNLTheme.of(context).colorScheme.destructive,
+                ),
+                const Gap(8),
+                Expanded(
+                  child: Text(
+                    'Lỗi hiển thị nội dung. Vui lòng thử lại sau.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: VNLTheme.of(context).colorScheme.destructive,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(16),
+          Text(
+            content.toString(),
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.6,
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildNewsFooter(BuildContext context, NewsModel news) {

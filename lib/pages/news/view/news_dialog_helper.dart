@@ -72,6 +72,7 @@ class NewsDialogHelper {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (news.author?.name != null)
                             Text(
                               news.author?.name ?? 'Tác giả không xác định',
                               style: const TextStyle(

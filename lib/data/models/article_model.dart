@@ -1,4 +1,4 @@
-import 'package:vnl_common_ui/vnl_ui.dart';
+import '../../utils/url_helper.dart';
 
 class ArticleModel {
   final int? id;
@@ -10,7 +10,7 @@ class ArticleModel {
   final String? dateUpdated;
   final String title;
   final String? thumbnail;
-  final String? content;
+  final dynamic content;
   final int? categoryId;
   final String? slug;
   final String? summary;
@@ -36,22 +36,50 @@ class ArticleModel {
   });
 
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
+    // Handle category - it might be an object or int
+    int? categoryIdValue;
+    if (json['category'] != null) {
+      if (json['category'] is int) {
+        categoryIdValue = json['category'];
+      } else if (json['category'] is Map<String, dynamic>) {
+        final categoryObj = json['category'] as Map<String, dynamic>;
+        categoryIdValue = categoryObj['id'] is int 
+            ? categoryObj['id'] 
+            : int.tryParse(categoryObj['id']?.toString() ?? '');
+      } else {
+        categoryIdValue = int.tryParse(json['category']?.toString() ?? '');
+      }
+    }
+
+    // Handle files - it might be an object or string
+    String? filesValue;
+    if (json['files'] != null) {
+      if (json['files'] is String) {
+        filesValue = json['files'];
+      } else if (json['files'] is Map<String, dynamic>) {
+        final filesObj = json['files'] as Map<String, dynamic>;
+        filesValue = filesObj['id']?.toString() ?? filesObj['url']?.toString();
+      } else {
+        filesValue = json['files']?.toString();
+      }
+    }
+
     return ArticleModel(
       id: json['id'],
-      status: json['status'],
+      status: json['status']?.toString(),
       sort: json['sort'],
-      userCreated: json['user_created'],
-      dateCreated: json['date_created'],
-      userUpdated: json['user_updated'],
-      dateUpdated: json['date_updated'],
-      title: json['title'] ?? '',
-      thumbnail: json['thumbnail'],
-      content: json['content'],
-      categoryId: json['category'],
-      slug: json['slug'],
-      summary: json['summary'],
-      files: json['files'],
-      tags: json['tags'],
+      userCreated: json['user_created']?.toString(),
+      dateCreated: json['date_created']?.toString(),
+      userUpdated: json['user_updated']?.toString(),
+      dateUpdated: json['date_updated']?.toString(),
+      title: json['title']?.toString() ?? '',
+      thumbnail: UrlHelper.formatThumbnailUrl(json['thumbnail']?.toString()),
+      content: json['content'], // Keep as dynamic - could be Map or String
+      categoryId: categoryIdValue,
+      slug: json['slug']?.toString(),
+      summary: json['summary']?.toString(),
+      files: filesValue,
+      tags: json['tags']?.toString(),
     );
   }
 
@@ -85,7 +113,7 @@ class ArticleModel {
     String? dateUpdated,
     String? title,
     String? thumbnail,
-    String? content,
+    dynamic content,
     int? categoryId,
     String? slug,
     String? summary,
@@ -122,11 +150,15 @@ class ArticleListResponse {
   });
 
   factory ArticleListResponse.fromJson(Map<String, dynamic> json) {
+    final dataList = (json['data'] as List<dynamic>)
+        .map((item) => ArticleModel.fromJson(item))
+        .toList();
+    
     return ArticleListResponse(
-      data: (json['data'] as List<dynamic>)
-          .map((item) => ArticleModel.fromJson(item))
-          .toList(),
-      meta: ArticleMetadata.fromJson(json['meta']),
+      data: dataList,
+      meta: json['meta'] != null 
+          ? ArticleMetadata.fromJson(json['meta'])
+          : ArticleMetadata(totalCount: dataList.length, filterCount: dataList.length),
     );
   }
 }
