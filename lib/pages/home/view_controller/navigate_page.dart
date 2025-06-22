@@ -73,7 +73,7 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
         mainContent = DocumentsTab();
         break;
       case 3:
-        mainContent = VideosTab();
+        mainContent = const VideosTab();
         break;
       case 4:
         // Show settings tab

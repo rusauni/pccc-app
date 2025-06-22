@@ -1,23 +1,171 @@
-import 'package:flutter/material.dart' hide IconButton, ButtonStyle;
+import 'package:flutter/material.dart' hide IconButton, ButtonStyle, CircularProgressIndicator, showDialog;
 import 'package:vnl_common_ui/vnl_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'video_tab_view_model.dart';
+import '../../../../data/repositories/video_repository.dart';
+import '../../../../data/api_client/base_api_client.dart';
+import '../../../../data/api_client/pccc_environment.dart';
+import '../../../../data/models/video_model.dart';
 
-class VideosTab extends StatelessWidget {
-  VideosTab({super.key});
+class VideosTab extends StatefulWidget {
+  const VideosTab({super.key});
+
+  @override
+  State<VideosTab> createState() => _VideosTabState();
+}
+
+class _VideosTabState extends State<VideosTab> {
+  late VideoTabViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeViewModel();
+  }
+
+  void _initializeViewModel() {
+    // Create API client with development environment
+    final apiClient = BaseApiClient(
+      environment: PcccEnvironment.development(),
+      // TODO: Add access token if needed
+    );
+
+    // Create repository instance
+    final videoRepository = VideoRepositoryImpl(
+      apiClient: apiClient,
+      useMockData: false, // Use real API as per cursor rules - real mode
+    );
+
+    // Initialize view model
+    _viewModel = VideoTabViewModel(
+      videoRepository: videoRepository,
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleVideoTap(BuildContext context, VideoModel video) async {
+    try {
+      if (video.link != null && video.link!.isNotEmpty) {
+        final Uri url = Uri.parse(video.link!);
+        
+        // Check if it's a valid URL
+        if (await canLaunchUrl(url)) {
+          await launchUrl(
+            url,
+            mode: LaunchMode.externalApplication,
+          );
+        } else {
+          // Show error using mounted check for proper context
+          if (mounted) {
+            _showErrorMessage('Không thể mở link video');
+          }
+        }
+      } else {
+        // Show message that video has no link
+        if (mounted) {
+          _showErrorMessage('Video này chưa có link');
+        }
+      }
+    } catch (e) {
+      // Handle any errors during URL launching
+      if (mounted) {
+        _showErrorMessage('Lỗi khi mở video: ${e.toString()}');
+      }
+    }
+  }
+
+  void _showErrorMessage(String message) {
+    // Simple logging for now - could be enhanced later with proper toast/dialog
+    debugPrint('Video error: $message');
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: EdgeInsets.all(16),
-      itemCount: _dummyVideos.length,
-      itemBuilder: (context, index) {
-        final video = _dummyVideos[index];
-        return _buildVideoCard(
-          title: video['title']!,
-          duration: video['duration']!,
-          date: video['date']!,
-          thumbnailUrl: video['thumbnailUrl']!,
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _viewModel.refreshVideos();
       },
+      child: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) {
+          if (_viewModel.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (_viewModel.errorMessage != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: VNLTheme.of(context).colorScheme.destructive,
+                  ),
+                  const Gap(16),
+                  Text(
+                    _viewModel.errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: VNLTheme.of(context).colorScheme.destructive,
+                    ),
+                  ),
+                  const Gap(16),
+                  VNLButton.primary(
+                    onPressed: _viewModel.refreshVideos,
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (_viewModel.videos.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.video_library,
+                    size: 64,
+                    color: VNLTheme.of(context).colorScheme.mutedForeground,
+                  ),
+                  const Gap(16),
+                  Text(
+                    'Chưa có video nào',
+                    style: TextStyle(
+                      color: VNLTheme.of(context).colorScheme.mutedForeground,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.all(16),
+            itemCount: _viewModel.videos.length,
+            itemBuilder: (context, index) {
+              final video = _viewModel.videos[index];
+              return _buildVideoCard(
+                title: video.title,
+                duration: _viewModel.getVideoDuration(video),
+                date: _viewModel.getVideoDate(video),
+                thumbnailUrl: _viewModel.getVideoThumbnail(video),
+                                 onTap: () => _handleVideoTap(context, video),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -26,6 +174,7 @@ class VideosTab extends StatelessWidget {
     required String duration,
     required String date,
     required String thumbnailUrl,
+    VoidCallback? onTap,
   }) {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
@@ -59,7 +208,7 @@ class VideosTab extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -73,12 +222,12 @@ class VideosTab extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
-                    onTap: () {},
+                    onTap: onTap,
                     child: Center(
                       child: Container(
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -115,42 +264,4 @@ class VideosTab extends StatelessWidget {
     );
   }
 
-  final List<Map<String, String>> _dummyVideos = [
-    {
-      'title': 'Hướng dẫn sử dụng bình chữa cháy',
-      'duration': '5:24',
-      'date': '20/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80',
-    },
-    {
-      'title': 'Cách thoát hiểm khi có hỏa hoạn',
-      'duration': '8:15',
-      'date': '15/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-    },
-    {
-      'title': 'Kỹ năng sơ cứu người bị nạn',
-      'duration': '12:40',
-      'date': '10/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&q=80',
-    },
-    {
-      'title': 'Diễn tập PCCC tại khu chung cư',
-      'duration': '15:30',
-      'date': '05/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-    },
-    {
-      'title': 'Cách lắp đặt hệ thống báo cháy',
-      'duration': '10:12',
-      'date': '01/05/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1503428593586-e225b39bddfe?w=800&q=80',
-    },
-    {
-      'title': 'Bảo trì thiết bị PCCC định kỳ',
-      'duration': '7:45',
-      'date': '25/04/2025',
-      'thumbnailUrl': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
-    },
-  ];
 }
