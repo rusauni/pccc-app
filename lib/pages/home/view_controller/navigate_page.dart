@@ -73,12 +73,10 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
         mainContent = DocumentsTab();
         break;
       case 3:
-        mainContent = const VideosTab();
+        mainContent = VideosTab();
         break;
       case 4:
-        // Show settings tab
         mainContent = SettingsTab();
-
         break;
       default:
         mainContent = HomeTab();
@@ -89,29 +87,6 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
     return mainContent;
   }
 
-  // Navigation bar configuration variables - updated for modern design
-  final NavigationBarAlignment _alignment = NavigationBarAlignment.spaceAround;
-  final bool _expands = false;
-  final NavigationLabelType _labelType = NavigationLabelType.all;
-  final bool _customButtonStyle = true;
-  final bool _expanded = false;
-
-  NavigationItem _buildNavigationItem(String label, IconData icon, IconData? selectedIcon) {
-    return NavigationItem(
-      style: _customButtonStyle 
-        ? ButtonStyle.ghost(density: ButtonDensity.compact) 
-        : null,
-      selectedStyle: _customButtonStyle 
-        ? ButtonStyle.primary(density: ButtonDensity.compact) 
-        : null,
-      label: Text(
-        label,
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-      child: Icon(icon, size: 22),
-    );
-  }
-
   Widget _buildModernNavigationBar() {
     final theme = VNLTheme.of(context);
     
@@ -120,61 +95,119 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
         color: theme.colorScheme.background,
         border: Border(
           top: BorderSide(
-            color: theme.colorScheme.border,
-            width: 1,
+            color: theme.colorScheme.border.withValues(alpha: 0.2),
+            width: 0.8,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
             offset: Offset(0, -2),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: VNLNavigationBar(
-            alignment: _alignment,
-            labelType: _labelType,
-            expanded: _expanded,
-            expands: _expands,
-            onSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            index: _selectedIndex,
+        child: Container(
+          height: 68,
+          padding: EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildNavigationItem(
-                'Trang chủ', 
-                BootstrapIcons.house, 
-                BootstrapIcons.houseFill
+              Flexible(
+                child: _buildCompactNavigationItem(
+                  'Trang chủ', 
+                  LucideIcons.house,
+                  0,
+                ),
               ),
-              _buildNavigationItem(
-                'Tin tức', 
-                BootstrapIcons.newspaper, 
-                null
+              Flexible(
+                child: _buildCompactNavigationItem(
+                  'Tin tức', 
+                  LucideIcons.newspaper,
+                  1,
+                ),
               ),
-              _buildNavigationItem(
-                'Tài liệu', 
-                BootstrapIcons.fileEarmark, 
-                BootstrapIcons.fileEarmarkFill
+              Flexible(
+                child: _buildCompactNavigationItem(
+                  'Tài liệu', 
+                  LucideIcons.fileText,
+                  2,
+                ),
               ),
-              _buildNavigationItem(
-                'Video', 
-                BootstrapIcons.playBtn, 
-                BootstrapIcons.playBtnFill
+              Flexible(
+                child: _buildCompactNavigationItem(
+                  'Video', 
+                  LucideIcons.video,
+                  3,
+                ),
               ),
-              _buildNavigationItem(
-                'Cài đặt', 
-                BootstrapIcons.gear, 
-                BootstrapIcons.gearFill
+              Flexible(
+                child: _buildCompactNavigationItem(
+                  'Cài đặt', 
+                  LucideIcons.settings,
+                  4,
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactNavigationItem(String label, IconData icon, int index) {
+    final theme = VNLTheme.of(context);
+    final isSelected = _selectedIndex == index;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: isSelected 
+                    ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 18,
+                color: isSelected 
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.mutedForeground,
+              ),
+            ),
+            SizedBox(height: 2),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected 
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.mutedForeground,
+                  height: 1.0,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
         ),
       ),
     );

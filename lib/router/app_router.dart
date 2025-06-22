@@ -20,6 +20,7 @@ class AppRouterPath {
   static const String equipmentMarket = "equipment-market";
   static const String consultation = "consultation";
   static const String calculationTools = "calculation-tools";
+  static const String pcccCheck = "pccc-check";
 }
 
 class AppRouter {

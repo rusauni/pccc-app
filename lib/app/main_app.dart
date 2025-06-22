@@ -15,6 +15,8 @@ import 'package:base_app/pages/home/view_controller/navigate_page.dart';
 import 'package:base_app/pages/home/view_model/home_page_view_model.dart';
 import 'package:base_app/pages/news/view_controller/news_detail_page.dart';
 import 'package:base_app/pages/news/view_model/news_detail_page_view_model.dart';
+import 'package:base_app/pages/pccc_check/view_controller/pccc_check_page.dart';
+import 'package:base_app/pages/pccc_check/view_model/pccc_check_page_view_model.dart';
 import 'package:base_app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -78,6 +80,11 @@ class VNLMainAppState extends State<VNLMainApp> {
         return NewsDetailPage(viewModel: NewsDetailPageViewModel(newsId: newsId));
       },
       name: AppRouterPath.newsDetail,
+    ),
+    GoRoute(
+      path: '/${AppRouterPath.pcccCheck}',
+      builder: (context, state) => PCCCCheckPage(viewModel: PCCCCheckPageViewModel()),
+      name: AppRouterPath.pcccCheck,
     ),
     GoRoute(
       path: '/auth',

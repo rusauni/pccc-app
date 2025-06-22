@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:vnl_common_ui/vnl_ui.dart';
+import 'package:go_router/go_router.dart';
+import 'package:base_app/router/app_router.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
@@ -77,7 +79,7 @@ class HomeTab extends StatelessWidget {
                   Expanded(
                     child: VNLButton(
                       style: ButtonStyle.outline(),
-                      onPressed: () {},
+                      onPressed: () => context.pushNamed(AppRouterPath.pcccCheck),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -127,7 +129,7 @@ class HomeTab extends StatelessWidget {
                   'Bảo trì',
                   'Bảo trì định kỳ thiết bị',
                   BootstrapIcons.gearFill,
-                  VNLTheme.of(context).colorScheme.secondary,
+                  Colors.blue,
                 ),
               ),
             ],
