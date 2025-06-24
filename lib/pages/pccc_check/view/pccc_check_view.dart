@@ -3,17 +3,21 @@ import 'package:base_app/pages/pccc_check/view_model/pccc_check_view_model.dart'
 import 'package:base_app/data/models/pccc_system_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:flutter/material.dart' hide ButtonStyle, CircularProgressIndicator, showDialog;
+import 'dart:async';
 
 class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
   const PCCCCheckView({super.key, required super.viewModel});
 
   @override
   Widget buildWidget(BuildContext context) {
+    final scrollController = ScrollController();
+
     return SafeArea(
       top: false,
       child: viewModel.isLoading 
         ? Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
+            controller: scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +35,7 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
                 const Gap(24),
                 
                 // Analysis Button
-                _buildAnalysisButton(context),
+                _buildAnalysisButton(context, scrollController),
                 const Gap(24),
                 
                 // Results Display
@@ -217,172 +221,236 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
                 }
               }
             }
-            return const Text('Chọn loại công trình');
+            return const Text('Không xác định');
           },
         ),
         const Gap(16),
         
-        // Fire Risk Category
+        // Fire Risk Category Selection (for warehouses/factories)
         const Text('Hạng Nguy Hiểm Cháy'),
+        const Text(
+          'Dành cho nhà xưởng/kho',
+          style: TextStyle(fontSize: 11, color: Colors.amber),
+        ),
         const Gap(8),
         VNLSelect<String>(
           value: viewModel.inputData.hangNguyHiemChay,
-          placeholder: const Text('Chọn hạng nguy hiểm'),
+          placeholder: const Text('Chọn hạng nguy hiểm (nếu có)'),
           onChanged: (value) {
-            if (value != null) {
-              viewModel.updateInputData(hangNguyHiemChay: value);
-            }
+            viewModel.updateInputData(hangNguyHiemChay: value);
           },
           popup: SelectPopup.builder(
             searchPlaceholder: const Text('Tìm kiếm hạng nguy hiểm'),
             builder: (context, searchQuery) {
-              // Filter fire risk categories based on search query
               final filteredCategories = searchQuery == null || searchQuery.isEmpty
                   ? viewModel.fireRiskCategories
                   : viewModel.fireRiskCategories.where((category) =>
                       category.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                      category.description.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                      category.id.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+                      category.description.toLowerCase().contains(searchQuery.toLowerCase())).toList();
 
               return SelectItemList(
                 children: [
-                  if (filteredCategories.isNotEmpty)
-                    SelectGroup(
-                      headers: [
-                        SelectLabel(
-                          child: const Text('Hạng Nguy Hiểm Cháy'),
-                        ),
-                      ],
-                      children: [
-                        for (final category in filteredCategories)
-                          SelectItemButton(
-                            value: category.id,
-                            child: Text('${category.name} - ${category.description}'),
+                  for (final category in filteredCategories)
+                    SelectItemButton(
+                      value: category.id,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(category.name),
+                          Text(
+                            category.description,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                 ],
               );
             },
           ),
           itemBuilder: (context, value) {
-            // Find the selected item
             final category = viewModel.fireRiskCategories.firstWhere(
               (cat) => cat.id == value,
-              orElse: () => FireRiskCategory(id: '', name: '', description: ''),
+              orElse: () => FireRiskCategory(id: '', name: 'Không xác định', description: ''),
             );
-            if (category.id.isNotEmpty) {
-              return Text('${category.name} - ${category.description}');
-            }
-            return const Text('Chọn hạng nguy hiểm');
+            return Text(category.name);
           },
         ),
         const Gap(16),
         
-        // Numeric inputs using simple TextField
-        Row(
+        // Numeric inputs - mỗi field một dòng
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Chiều Cao (m)'),
-                  const Gap(8),
-                  VNLTextField(
-                    keyboardType: TextInputType.number,
-                    placeholder: const Text('Nhập chiều cao'),
-                    onChanged: (value) {
-                      final height = double.tryParse(value);
-                      viewModel.updateInputData(chieuCao: height);
-                    },
-                  ),
-                ],
-              ),
+            // Chiều cao
+            Row(
+              children: [
+                const Text('Chiều Cao (m)'),
+                const Gap(4),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+              ],
+            ),
+            const Text(
+              'Từ mặt đất đến sàn tầng cao nhất',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const Gap(8),
+            VNLTextField(
+              keyboardType: TextInputType.number,
+              placeholder: const Text('VD: 25'),
+              onChanged: (value) {
+                final height = double.tryParse(value);
+                viewModel.updateInputData(chieuCao: height);
+              },
             ),
             const Gap(16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Số Tầng'),
-                  const Gap(8),
-                  VNLTextField(
-                    keyboardType: TextInputType.number,
-                    placeholder: const Text('Nhập số tầng'),
-                    onChanged: (value) {
-                      final floors = int.tryParse(value);
-                      viewModel.updateInputData(soTang: floors);
-                    },
-                  ),
-                ],
-              ),
+            
+            // Số tầng
+            const Text('Số Tầng'),
+            const Text(
+              'Không tính tầng hầm',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const Gap(8),
+            VNLTextField(
+              keyboardType: TextInputType.number,
+              placeholder: const Text('VD: 5'),
+              onChanged: (value) {
+                final floors = int.tryParse(value);
+                viewModel.updateInputData(soTang: floors);
+              },
+            ),
+            const Gap(16),
+            
+            // Diện tích sàn
+            Row(
+              children: [
+                const Text('Diện Tích Sàn (m²)'),
+                const Gap(4),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+              ],
+            ),
+            const Text(
+              'Tổng diện tích sàn các tầng',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const Gap(8),
+            VNLTextField(
+              keyboardType: TextInputType.number,
+              placeholder: const Text('VD: 1000'),
+              onChanged: (value) {
+                final area = double.tryParse(value);
+                viewModel.updateInputData(tongDienTichSan: area);
+              },
+            ),
+            const Gap(16),
+            
+            // Số người sử dụng
+            const Text('Số Người Sử Dụng'),
+            const Text(
+              'Số người tối đa cùng lúc',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const Gap(8),
+            VNLTextField(
+              keyboardType: TextInputType.number,
+              placeholder: const Text('VD: 100'),
+              onChanged: (value) {
+                final users = int.tryParse(value);
+                viewModel.updateInputData(soNguoiSuDung: users);
+              },
+            ),
+            const Gap(16),
+            
+            // Khối tích
+            Row(
+              children: [
+                const Text('Khối Tích (m³)'),
+                const Gap(4),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+              ],
+            ),
+            const Text(
+              'Tùy chọn - dành cho một số quy định đặc biệt',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const Gap(8),
+            VNLTextField(
+              keyboardType: TextInputType.number,
+              placeholder: const Text('VD: 2500'),
+              onChanged: (value) {
+                final volume = double.tryParse(value);
+                viewModel.updateInputData(khoiTich: volume);
+              },
+            ),
+            const Gap(16),
+            
+            // Tỷ lệ phòng cần chữa cháy
+            Row(
+              children: [
+                const Text('Tỷ Lệ Phòng Cần CC (%)'),
+                const Gap(4),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+              ],
+            ),
+            const Text(
+              '≥40% → bắt buộc hệ thống chữa cháy tự động',
+              style: TextStyle(fontSize: 11, color: Colors.amber),
+            ),
+            const Gap(8),
+            VNLTextField(
+              keyboardType: TextInputType.number,
+              placeholder: const Text('VD: 50'),
+              onChanged: (value) {
+                final percentage = double.tryParse(value);
+                viewModel.updateTiLePhongCanCC(percentage);
+              },
             ),
           ],
         ),
         const Gap(16),
         
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Diện Tích Sàn (m²)'),
-                  const Gap(8),
-                  VNLTextField(
-                    keyboardType: TextInputType.number,
-                    placeholder: const Text('Nhập diện tích'),
-                    onChanged: (value) {
-                      final area = double.tryParse(value);
-                      viewModel.updateInputData(tongDienTichSan: area);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const Gap(16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Số Người Sử Dụng'),
-                  const Gap(8),
-                  VNLTextField(
-                    keyboardType: TextInputType.number,
-                    placeholder: const Text('Nhập số người'),
-                    onChanged: (value) {
-                      final users = int.tryParse(value);
-                      viewModel.updateInputData(soNguoiSuDung: users);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const Gap(16),
-        
-        // Toggle fields
-        const Text('Đặc Điểm Đặc Biệt'),
+        // Đặc điểm quan trọng
+        const Text('Đặc Điểm Quan Trọng'),
         const Gap(8),
-        Wrap(
-          spacing: 24,
-          runSpacing: 16,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildToggleField(
               'Có Tầng Hầm',
               viewModel.inputData.coTangHam ?? false,
               (value) => viewModel.updateInputData(coTangHam: value),
+              subtitle: 'Bắt buộc hệ thống báo cháy',
             ),
+            const Gap(12),
             _buildToggleField(
               'Có Phòng Ngủ',
               viewModel.inputData.coPhongNgu ?? false,
               (value) => viewModel.updateInputData(coPhongNgu: value),
+              subtitle: 'Tăng cường thiết bị thoát nạn',
             ),
+            const Gap(12),
             _buildToggleField(
-              'Mục Đích Đặc Biệt',
+              'Mục Đích Sử Dụng Đặc Biệt',
               viewModel.inputData.mucDichSuDungDacBiet ?? false,
               (value) => viewModel.updateInputData(mucDichSuDungDacBiet: value),
+              subtitle: 'Bệnh viện, trường học, dưỡng lão...',
             ),
           ],
         ),
@@ -390,26 +458,65 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
     );
   }
 
-  Widget _buildToggleField(String label, bool value, Function(bool) onChanged) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildToggleField(String label, bool value, Function(bool) onChanged, {String? subtitle}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        VNLSwitch(
-          value: value,
-          onChanged: onChanged,
+        Row(
+          children: [
+            VNLSwitch(
+              value: value,
+              onChanged: onChanged,
+            ),
+            const Gap(12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+              ),
+            ),
+          ],
         ),
-        const Gap(8),
-        Text(label),
+        if (subtitle != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 52), // Căn với text phía trên
+            child: Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildAnalysisButton(BuildContext context) {
+  Widget _buildAnalysisButton(BuildContext context, ScrollController scrollController) {
     return Center(
       child: VNLButton(
         style: ButtonVariance.primary,
         onPressed: viewModel.hasBasicInput && !viewModel.isAnalyzing
-            ? () => viewModel.analyzeAllSystems()
+            ? () async {
+                await viewModel.analyzeAllSystems();
+                // Auto scroll xuống phần kết quả sau khi phân tích xong
+                if (viewModel.hasResults) {
+                  // Đợi UI rebuild hoàn tất
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      if (scrollController.hasClients) {
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    });
+                  });
+                }
+              }
             : null,
         child: viewModel.isAnalyzing
             ? const Row(

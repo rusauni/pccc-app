@@ -74,8 +74,30 @@ class PCCCAnalysisService {
   // Đánh giá rule logic
   static bool _evaluateRule(String condition, PCCCInputData inputData) {
     try {
+      // Chỉ xử lý IN operator khi nó đứng một mình (không có AND/OR)
+      if (condition.contains(' IN ') && !condition.contains(' AND ') && !condition.contains(' OR ')) {
+        return _evaluateInCondition(condition, inputData);
+      }
+
       // Thay thế các biến trong condition bằng giá trị thực tế
       String evaluatedCondition = condition;
+      
+      // Thay thế string variables trước
+      if (inputData.loaiNha != null) {
+        evaluatedCondition = evaluatedCondition.replaceAll('loaiNha', "'${inputData.loaiNha}'");
+      }
+      if (inputData.hangNguyHiemChay != null) {
+        evaluatedCondition = evaluatedCondition.replaceAll('hangNguyHiemChay', "'${inputData.hangNguyHiemChay}'");
+      }
+      if (inputData.loaiCoSo != null) {
+        evaluatedCondition = evaluatedCondition.replaceAll('loaiCoSo', "'${inputData.loaiCoSo}'");
+      }
+      if (inputData.loaiBinhChuaChay != null) {
+        evaluatedCondition = evaluatedCondition.replaceAll('loaiBinhChuaChay', "'${inputData.loaiBinhChuaChay}'");
+      }
+      if (inputData.loaiPhuongTienCoGioi != null) {
+        evaluatedCondition = evaluatedCondition.replaceAll('loaiPhuongTienCoGioi', "'${inputData.loaiPhuongTienCoGioi}'");
+      }
       
       // Thay thế các biến số
       evaluatedCondition = evaluatedCondition.replaceAll('chieuCao', '${inputData.chieuCao ?? 0}');
@@ -86,6 +108,7 @@ class PCCCAnalysisService {
       evaluatedCondition = evaluatedCondition.replaceAll('dienTichKhuVuc', '${inputData.dienTichKhuVuc ?? 0}');
       evaluatedCondition = evaluatedCondition.replaceAll('dienTichCoSo', '${inputData.dienTichCoSo ?? 0}');
       evaluatedCondition = evaluatedCondition.replaceAll('khoangCachDenTruNuocCongCong', '${inputData.khoangCachDenTruNuocCongCong ?? 0}');
+      evaluatedCondition = evaluatedCondition.replaceAll('tiLePhongCanCC', '${inputData.tiLePhongCanCC ?? 0}');
 
       // Thay thế các biến boolean
       evaluatedCondition = evaluatedCondition.replaceAll('coTangHam', '${inputData.coTangHam ?? false}');
@@ -99,26 +122,89 @@ class PCCCAnalysisService {
       evaluatedCondition = evaluatedCondition.replaceAll('coKhuyenKhichMatNaLocDoc', '${inputData.coKhuyenKhichMatNaLocDoc ?? false}');
       evaluatedCondition = evaluatedCondition.replaceAll('mucDichSuDungDacBiet', '${inputData.mucDichSuDungDacBiet ?? false}');
 
-      // Xử lý các điều kiện phức tạp
-      return _evaluateComplexCondition(evaluatedCondition, inputData);
+      // Xử lý các điều kiện phức tạp với condition đã được thay thế
+      return _evaluateComplexConditionAfterReplacement(evaluatedCondition, inputData);
     } catch (e) {
       return false;
     }
   }
 
-  // Đánh giá điều kiện phức tạp
-  static bool _evaluateComplexCondition(String condition, PCCCInputData inputData) {
-    // Xử lý IN operator
+  // Đánh giá điều kiện phức tạp sau khi đã thay thế variables
+  static bool _evaluateComplexConditionAfterReplacement(String condition, PCCCInputData inputData) {
+    // Remove parentheses và xử lý
+    condition = condition.trim();
+    if (condition.startsWith('(') && condition.endsWith(')')) {
+      condition = condition.substring(1, condition.length - 1);
+    }
+
+    // Xử lý IN operator trong mixed conditions
     if (condition.contains(' IN ')) {
-      return _evaluateInCondition(condition, inputData);
+      return _evaluateInConditionAfterReplacement(condition, inputData);
     }
 
     // Xử lý AND/OR operators
     if (condition.contains(' AND ') || condition.contains(' OR ')) {
-      return _evaluateLogicalCondition(condition);
+      return _evaluateLogicalConditionAfterReplacement(condition, inputData);
     }
 
     // Xử lý các điều kiện đơn giản
+    return _evaluateSimpleCondition(condition);
+  }
+
+  // Đánh giá điều kiện IN sau khi đã thay thế (cho mixed conditions)
+  static bool _evaluateInConditionAfterReplacement(String condition, PCCCInputData inputData) {
+    // Xử lý AND/OR với IN
+    if (condition.contains(' AND ')) {
+      final parts = condition.split(' AND ');
+      return parts.every((part) => _evaluateComplexConditionAfterReplacement(part.trim(), inputData));
+    }
+    
+    if (condition.contains(' OR ')) {
+      final parts = condition.split(' OR ');
+      return parts.any((part) => _evaluateComplexConditionAfterReplacement(part.trim(), inputData));
+    }
+
+    // Single IN condition - evaluate the replaced condition directly
+    return _evaluateInConditionWithReplacedValues(condition);
+  }
+
+  // Đánh giá IN condition khi values đã được thay thế
+  static bool _evaluateInConditionWithReplacedValues(String condition) {
+    final parts = condition.split(' IN ');
+    if (parts.length != 2) return false;
+
+    final valueStr = parts[0].trim();
+    final listStr = parts[1].trim();
+    
+    // Extract list values
+    final listMatch = RegExp(r'\[(.*?)\]').firstMatch(listStr);
+    if (listMatch == null) return false;
+    
+    final listValues = listMatch.group(1)!
+        .split(',')
+        .map((e) => e.trim().replaceAll("'", ""))
+        .toList();
+
+    // Get actual value (remove quotes if present)
+    final actualValue = valueStr.replaceAll("'", "");
+    
+    return listValues.contains(actualValue);
+  }
+
+  // Đánh giá điều kiện logic sau khi đã thay thế
+  static bool _evaluateLogicalConditionAfterReplacement(String condition, PCCCInputData inputData) {
+    // Xử lý OR trước
+    if (condition.contains(' OR ')) {
+      final parts = condition.split(' OR ');
+      return parts.any((part) => _evaluateComplexConditionAfterReplacement(part.trim(), inputData));
+    }
+
+    // Xử lý AND
+    if (condition.contains(' AND ')) {
+      final parts = condition.split(' AND ');
+      return parts.every((part) => _evaluateComplexConditionAfterReplacement(part.trim(), inputData));
+    }
+
     return _evaluateSimpleCondition(condition);
   }
 
@@ -162,23 +248,6 @@ class PCCCAnalysisService {
     return actualValue != null && listValues.contains(actualValue);
   }
 
-  // Đánh giá điều kiện logic (AND/OR)
-  static bool _evaluateLogicalCondition(String condition) {
-    // Xử lý OR trước
-    if (condition.contains(' OR ')) {
-      final parts = condition.split(' OR ');
-      return parts.any((part) => _evaluateSimpleCondition(part.trim()));
-    }
-
-    // Xử lý AND
-    if (condition.contains(' AND ')) {
-      final parts = condition.split(' AND ');
-      return parts.every((part) => _evaluateComplexCondition(part.trim(), PCCCInputData()));
-    }
-
-    return _evaluateSimpleCondition(condition);
-  }
-
   // Đánh giá điều kiện đơn giản
   static bool _evaluateSimpleCondition(String condition) {
     // Xử lý các phép so sánh
@@ -200,7 +269,23 @@ class PCCCAnalysisService {
       }
     }
 
-    if (condition.contains('>')) {
+    if (condition.contains('!=')) {
+      final parts = condition.split('!=');
+      if (parts.length == 2) {
+        final left = parts[0].trim();
+        final right = parts[1].trim();
+        
+        // Xử lý boolean
+        if (left == 'true' || left == 'false') {
+          return left != right;
+        }
+        
+        // Xử lý string
+        return left.replaceAll("'", "") != right.replaceAll("'", "");
+      }
+    }
+
+    if (condition.contains('>') && !condition.contains('>=')) {
       final parts = condition.split('>');
       if (parts.length == 2) {
         final left = double.tryParse(parts[0].trim()) ?? 0;
@@ -209,7 +294,7 @@ class PCCCAnalysisService {
       }
     }
 
-    if (condition.contains('<')) {
+    if (condition.contains('<') && !condition.contains('<=')) {
       final parts = condition.split('<');
       if (parts.length == 2) {
         final left = double.tryParse(parts[0].trim()) ?? 0;
@@ -218,7 +303,7 @@ class PCCCAnalysisService {
       }
     }
 
-    if (condition.contains('=')) {
+    if (condition.contains('=') && !condition.contains('>=') && !condition.contains('<=') && !condition.contains('!=')) {
       final parts = condition.split('=');
       if (parts.length == 2) {
         final left = parts[0].trim();
@@ -275,5 +360,10 @@ class PCCCAnalysisService {
       'notRequiredSystems': notRequiredSystems,
       'compliancePercentage': requiredSystems.length / results.length * 100,
     };
+  }
+
+  // Public method for testing
+  static bool evaluateRuleForTesting(String condition, PCCCInputData inputData) {
+    return _evaluateRule(condition, inputData);
   }
 } 

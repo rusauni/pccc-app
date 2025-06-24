@@ -232,6 +232,7 @@ class PCCCInputData {
   bool? viTriBoTriPhongTruc;
   bool? coKhuyenKhichMatNaLocDoc;
   bool? mucDichSuDungDacBiet;
+  double? tiLePhongCanCC; // Tỷ lệ % diện tích phòng cần chữa cháy
 
   PCCCInputData();
 
@@ -260,6 +261,7 @@ class PCCCInputData {
       'viTriBoTriPhongTruc': viTriBoTriPhongTruc,
       'coKhuyenKhichMatNaLocDoc': coKhuyenKhichMatNaLocDoc,
       'mucDichSuDungDacBiet': mucDichSuDungDacBiet,
+      'tiLePhongCanCC': tiLePhongCanCC,
     };
   }
 }

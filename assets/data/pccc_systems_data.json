@@ -12,7 +12,8 @@
           "khoiTich",
           "hangNguyHiemChay",
           "soTang",
-          "mucDichSuDungDacBiet"
+          "mucDichSuDungDacBiet",
+          "tiLePhongCanCC"
         ],
         "conditions": {
           "required": true,
@@ -44,6 +45,10 @@
             {
               "condition": "loaiNha IN ['benh_vien', 'tram_y_te', 'phong_kham'] AND (chieuCao >= 25 OR tongDienTichSan >= 2000)",
               "description": "Cơ sở y tế có chiều cao từ 25m hoặc diện tích từ 2.000m²"
+            },
+            {
+              "condition": "tiLePhongCanCC >= 40",
+              "description": "Toàn bộ nhà nếu tổng diện tích các gian phòng thuộc diện trang bị ≥ 40% tổng diện tích sàn"
             }
           ]
         },
@@ -72,11 +77,11 @@
               "description": "Công trình từ 7 tầng hoặc 25m trở lên"
             },
             {
-              "condition": "soTang >= 3 OR khoiTich >= 1500 AND loaiNha IN ['nha_o_ket_hop', 'nha_hon_hop', 'buu_dien', 'van_hoa', 'benh_vien']",
+              "condition": "(soTang >= 3 OR khoiTich >= 1500) AND loaiNha IN ['nha_o_rieng_le', 'nha_hon_hop', 'buu_dien', 'van_hoa', 'benh_vien']",
               "description": "Từ 3 tầng hoặc 1.500m³ cho một số loại nhà"
             },
             {
-              "condition": "soTang >= 5 OR khoiTich >= 2500 AND loaiNha IN ['chung_cu', 'tap_the', 'ky_tuc_xa', 'truong_hoc']",
+              "condition": "(soTang >= 5 OR khoiTich >= 2500) AND loaiNha IN ['chung_cu', 'tap_the', 'ky_tuc_xa', 'truong_hoc']",
               "description": "Từ 5 tầng hoặc 2.500m³ cho chung cư, trường học"
             },
             {
@@ -108,6 +113,7 @@
           "loaiNha",
           "chieuCao",
           "soTang",
+          "tongDienTichSan",
           "hangNguyHiemChay", 
           "coTangHam",
           "suDungChatKiNuoc"
@@ -151,12 +157,12 @@
               "description": "Khu công nghiệp, đô thị"
             },
             {
-              "condition": "tongDienTichSan > 600 AND loaiNha = 'nha_o'",
+              "condition": "tongDienTichSan > 600 AND loaiNha IN ['nha_o_rieng_le', 'chung_cu', 'tap_the']",
               "description": "Nhà ở diện tích > 600m²"
             },
             {
-              "condition": "tongDienTichSan > 1000 AND loaiNha = 'nha_xuong'",
-              "description": "Nhà xưởng diện tích > 1.000m²"
+              "condition": "tongDienTichSan > 1000 AND loaiNha IN ['nha_xuong', 'nha_kho']",
+              "description": "Nhà xưởng/kho diện tích > 1.000m²"
             },
             {
               "condition": "khoangCachDenTruNuocCongCong > 150",
@@ -186,7 +192,7 @@
               "description": "Hầu hết công trình (trừ nhà ở riêng lẻ không thuộc diện)"
             },
             {
-              "condition": "loaiNha IN ['kho', 'cua_hang', 'san_xuat']",
+              "condition": "loaiNha IN ['nha_kho', 'cua_hang', 'san_xuat']",
               "description": "Nhà kho, cửa hàng, cơ sở sản xuất theo Phụ lục H"
             },
             {
@@ -221,7 +227,7 @@
             },
             {
               "condition": "coPhongOnLon = true",
-              "description": "Phòng có mức ồn > 95 dBA cần cảnh báo ánh sáng"
+              "description": "Phòng có mức ồn > 95 dBA cần cảnh báo ánh sánh"
             }
           ]
         },
@@ -235,7 +241,8 @@
         "inputFields": [
           "loaiCoSo",
           "dienTichCoSo",
-          "loaiPhuongTienCoGioi"
+          "loaiPhuongTienCoGioi",
+          "hangNguyHiemChay"
         ],
         "conditions": {
           "required": false,
@@ -305,7 +312,11 @@
           {"id": "tram_y_te", "name": "Trạm y tế"},
           {"id": "phong_kham", "name": "Phòng khám"},
           {"id": "duong_lao", "name": "Nhà dưỡng lão"},
-          {"id": "cham_soc_khuyet_tat", "name": "Nhà chăm sóc người khuyết tật"}
+          {"id": "cham_soc_khuyet_tat", "name": "Nhà chăm sóc người khuyết tật"},
+          {"id": "buu_dien", "name": "Bưu điện"},
+          {"id": "truyen_thanh", "name": "Truyền thanh - Truyền hình"},
+          {"id": "van_hoa", "name": "Nhà văn hóa"},
+          {"id": "thu_vien", "name": "Thư viện"}
         ]
       },
       {
@@ -314,7 +325,9 @@
         "subcategories": [
           {"id": "nha_xuong", "name": "Nhà xưởng"},
           {"id": "nha_kho", "name": "Nhà kho"},
-          {"id": "khu_cong_nghiep", "name": "Khu công nghiệp"}
+          {"id": "khu_cong_nghiep", "name": "Khu công nghiệp"},
+          {"id": "san_xuat", "name": "Cơ sở sản xuất"},
+          {"id": "kho_tang", "name": "Kho tàng"}
         ]
       },
       {
@@ -325,7 +338,9 @@
           {"id": "dich_vu_luu_tru", "name": "Dịch vụ lưu trú"},
           {"id": "an_uong", "name": "Cửa hàng ăn uống"},
           {"id": "tham_my", "name": "Thẩm mỹ viện"},
-          {"id": "vui_choi_giai_tri", "name": "Vui chơi giải trí"}
+          {"id": "vui_choi_giai_tri", "name": "Vui chơi giải trí"},
+          {"id": "cua_hang", "name": "Cửa hàng"},
+          {"id": "hanh_chinh", "name": "Nhà hành chính"}
         ]
       },
       {
@@ -336,6 +351,17 @@
           {"id": "ga_duong_sat", "name": "Nhà ga đường sắt"},
           {"id": "ben_xe", "name": "Bến xe khách"},
           {"id": "ga_ra_ham", "name": "Ga ra hầm"}
+        ]
+      },
+      {
+        "id": "nha_dac_biet",
+        "name": "Nhà đặc biệt",
+        "subcategories": [
+          {"id": "tru_so_pccc", "name": "Trụ sở PCCC"},
+          {"id": "kho_dau", "name": "Kho dầu mỏ"},
+          {"id": "cua_hang_xang", "name": "Cửa hàng xăng dầu"},
+          {"id": "khi_dot", "name": "Cơ sở khí đốt"},
+          {"id": "khu_do_thi", "name": "Khu đô thị"}
         ]
       }
     ],

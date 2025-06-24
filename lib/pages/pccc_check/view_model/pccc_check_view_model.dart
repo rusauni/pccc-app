@@ -243,4 +243,125 @@ class PCCCCheckViewModel extends BaseViewModel {
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
+
+  // Cập nhật dữ liệu input
+  void updateLoaiNha(String? value) {
+    _inputData.loaiNha = value;
+    notifyListeners();
+  }
+
+  void updateChieuCao(double? value) {
+    _inputData.chieuCao = value;
+    notifyListeners();
+  }
+
+  void updateSoTang(int? value) {
+    _inputData.soTang = value;
+    notifyListeners();
+  }
+
+  void updateTongDienTichSan(double? value) {
+    _inputData.tongDienTichSan = value;
+    notifyListeners();
+  }
+
+  void updateKhoiTich(double? value) {
+    _inputData.khoiTich = value;
+    notifyListeners();
+  }
+
+  void updateHangNguyHiemChay(String? value) {
+    _inputData.hangNguyHiemChay = value;
+    notifyListeners();
+  }
+
+  void updateCoTangHam(bool? value) {
+    _inputData.coTangHam = value;
+    notifyListeners();
+  }
+
+  void updateSoNguoiSuDung(int? value) {
+    _inputData.soNguoiSuDung = value;
+    notifyListeners();
+  }
+
+  void updateCoPhongNgu(bool? value) {
+    _inputData.coPhongNgu = value;
+    notifyListeners();
+  }
+
+  void updateCoPhongOnLon(bool? value) {
+    _inputData.coPhongOnLon = value;
+    notifyListeners();
+  }
+
+  void updateDienTichKhuVuc(double? value) {
+    _inputData.dienTichKhuVuc = value;
+    notifyListeners();
+  }
+
+  void updateCoVatCan(bool? value) {
+    _inputData.coVatCan = value;
+    notifyListeners();
+  }
+
+  void updateKhuVucKhoTiepCan(bool? value) {
+    _inputData.khuVucKhoTiepCan = value;
+    notifyListeners();
+  }
+
+  void updateLoaiBinhChuaChay(String? value) {
+    _inputData.loaiBinhChuaChay = value;
+    notifyListeners();
+  }
+
+  void updateKhoangCachDenTruNuocCongCong(double? value) {
+    _inputData.khoangCachDenTruNuocCongCong = value;
+    notifyListeners();
+  }
+
+  void updateKhaNangKetNoiNuocSinhHoat(bool? value) {
+    _inputData.khaNangKetNoiNuocSinhHoat = value;
+    notifyListeners();
+  }
+
+  void updateSuDungChatKiNuoc(bool? value) {
+    _inputData.suDungChatKiNuoc = value;
+    notifyListeners();
+  }
+
+  void updateLoaiCoSo(String? value) {
+    _inputData.loaiCoSo = value;
+    notifyListeners();
+  }
+
+  void updateDienTichCoSo(double? value) {
+    _inputData.dienTichCoSo = value;
+    notifyListeners();
+  }
+
+  void updateLoaiPhuongTienCoGioi(String? value) {
+    _inputData.loaiPhuongTienCoGioi = value;
+    notifyListeners();
+  }
+
+  void updateViTriBoTriPhongTruc(bool? value) {
+    _inputData.viTriBoTriPhongTruc = value;
+    notifyListeners();
+  }
+
+  void updateCoKhuyenKhichMatNaLocDoc(bool? value) {
+    _inputData.coKhuyenKhichMatNaLocDoc = value;
+    notifyListeners();
+  }
+
+  void updateMucDichSuDungDacBiet(bool? value) {
+    _inputData.mucDichSuDungDacBiet = value;
+    notifyListeners();
+  }
+
+  void updateTiLePhongCanCC(double? value) {
+    _inputData.tiLePhongCanCC = value;
+    notifyListeners();
+  }
 } 
