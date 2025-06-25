@@ -2,9 +2,30 @@ import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:base_app/router/app_router.dart';
+import '../../view_model/home_view_model.dart';
+import '../../../news/model/news_model.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  late HomeViewModel _homeViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeViewModel = HomeViewModel.create();
+  }
+
+  @override
+  void dispose() {
+    _homeViewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,25 +237,23 @@ class HomeTab extends StatelessWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           Gap(16),
-          _buildCategoryItem(context, 'Bình chữa cháy', 'Các loại bình chữa cháy ABC, CO2, bột khô', BootstrapIcons.dropletFill, Colors.red),
+          _buildCategoryItem(context, 'Bình chữa cháy', 'Các loại bình chữa cháy ABC, CO2, bột khô', BootstrapIcons.dropletFill, Colors.red, 'fire_extinguisher'),
           Gap(8),
-          _buildCategoryItem(context, 'Thiết bị báo cháy', 'Đầu báo khói, nhiệt, nút nhấn báo cháy', BootstrapIcons.bellFill, Colors.orange),
+          _buildCategoryItem(context, 'Thiết bị báo cháy', 'Đầu báo khói, nhiệt, nút nhấn báo cháy', BootstrapIcons.bellFill, Colors.orange, 'fire_alarm'),
           Gap(8),
-          _buildCategoryItem(context, 'Vòi chữa cháy', 'Vòi chữa cháy, cuộn vòi, lăng phun', BootstrapIcons.water, Colors.blue),
+          _buildCategoryItem(context, 'Vòi chữa cháy', 'Vòi chữa cháy, cuộn vòi, lăng phun', BootstrapIcons.water, Colors.blue, 'water_sprinkler'),
           Gap(8),
-          _buildCategoryItem(context, 'Đèn thoát hiểm', 'Đèn Exit, đèn sự cố, đèn chiếu sáng', BootstrapIcons.lightbulbFill, Colors.yellow.shade700),
-          Gap(8),
-          _buildCategoryItem(context, 'Máy bơm chữa cháy', 'Bơm ly tâm, bơm diesel, tủ điều khiển', BootstrapIcons.gearWideConnected, Colors.purple),
+          _buildCategoryItem(context, 'Đèn thoát hiểm', 'Đèn Exit, đèn sự cố, đèn chiếu sáng', BootstrapIcons.lightbulbFill, Colors.yellow.shade700, 'emergency_light'),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, String title, String description, IconData icon, Color color) {
+  Widget _buildCategoryItem(BuildContext context, String title, String description, IconData icon, Color color, String categoryId) {
     return VNLCard(
       child: VNLButton(
         style: ButtonStyle.ghost(),
-        onPressed: () {},
+        onPressed: () => context.go('/equipment-products/$categoryId'),
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Row(
@@ -284,35 +303,124 @@ class HomeTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Text(
+            'Tin tức nổi bật',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Gap(16),
+          ListenableBuilder(
+            listenable: _homeViewModel,
+            builder: (context, child) {
+                            if (_homeViewModel.isLoading) {
+                return Container(
+                  padding: EdgeInsets.all(20),
+                  child: Text('Đang tải...'),
+                );
+              }
+
+              if (_homeViewModel.errorMessage != null) {
+                return Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red),
+                  ),
+                  child: Text(
+                    _homeViewModel.errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                );
+              }
+
+              final newsList = _homeViewModel.featuredNewsList;
+              if (newsList.isEmpty) {
+                return Container(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Chưa có tin tức nổi bật',
+                    style: TextStyle(
+                      color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                children: [
+                  for (int i = 0; i < newsList.length; i++) ...[
+                    if (i > 0) Gap(12),
+                    _buildNewsItemFromModel(context, newsList[i]),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNewsItemFromModel(BuildContext context, NewsModel news) {
+    // Format date
+    String formattedDate = '';
+    if (news.dateCreated != null) {
+      try {
+        final date = DateTime.parse(news.dateCreated!);
+        formattedDate = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+      } catch (e) {
+        formattedDate = news.dateCreated!;
+      }
+    }
+
+    return VNLCard(
+      child: VNLButton(
+        style: ButtonStyle.ghost(),
+        onPressed: () {
+          if (news.id != null) {
+            // Navigate to news detail page
+            context.go('/news-detail/${news.id}');
+          }
+        },
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tin tức nổi bật',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                news.title ?? 'Tiêu đề tin tức',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              VNLButton(
-                style: ButtonStyle.ghost(),
-                onPressed: () {},
-                child: Text('Xem tất cả', style: TextStyle(color: VNLTheme.of(context).colorScheme.primary)),
+              Gap(8),
+              if (news.summary?.isNotEmpty == true)
+                Text(
+                  news.summary!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: VNLTheme.of(context).colorScheme.mutedForeground,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              Gap(8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    formattedDate,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
+                  Icon(BootstrapIcons.chevronRight, size: 14),
+                ],
               ),
             ],
           ),
-          Gap(16),
-          _buildNewsItem(
-            context,
-            'Diễn tập PCCC tại khu chung cư cao tầng',
-            'Sáng ngày 15/5/2025, Phòng Cảnh sát PCCC&CNCH Công an TP đã tổ chức buổi diễn tập...',
-            '15/05/2025',
-          ),
-          Gap(12),
-          _buildNewsItem(
-            context,
-            'Cập nhật quy định mới về PCCC năm 2025',
-            'Bộ Công an vừa ban hành Thông tư số 25/2025/TT-BCA quy định về phòng cháy...',
-            '10/05/2025',
-          ),
-        ],
+        ),
       ),
     );
   }

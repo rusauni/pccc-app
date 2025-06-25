@@ -17,6 +17,10 @@ import 'package:base_app/pages/news/view_controller/news_detail_page.dart';
 import 'package:base_app/pages/news/view_model/news_detail_page_view_model.dart';
 import 'package:base_app/pages/pccc_check/view_controller/pccc_check_page.dart';
 import 'package:base_app/pages/pccc_check/view_model/pccc_check_page_view_model.dart';
+import 'package:base_app/pages/equipment_category/view_controller/equipment_category_page.dart';
+import 'package:base_app/pages/equipment_category/view_model/equipment_category_page_view_model.dart';
+import 'package:base_app/pages/product_list/view_controller/product_list_page.dart';
+import 'package:base_app/pages/product_list/view_model/product_list_page_view_model.dart';
 import 'package:base_app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -85,6 +89,19 @@ class VNLMainAppState extends State<VNLMainApp> {
       path: '/${AppRouterPath.pcccCheck}',
       builder: (context, state) => PCCCCheckPage(viewModel: PCCCCheckPageViewModel()),
       name: AppRouterPath.pcccCheck,
+    ),
+    GoRoute(
+      path: '/equipment-categories',
+      builder: (context, state) => EquipmentCategoryPage(viewModel: EquipmentCategoryPageViewModel()),
+      name: 'equipment-categories',
+    ),
+    GoRoute(
+      path: '/equipment-products/:categoryId',
+      builder: (context, state) {
+        final categoryId = state.pathParameters['categoryId'] ?? '';
+        return ProductListPage(viewModel: ProductListPageViewModel(categoryId: categoryId));
+      },
+      name: 'equipment-products',
     ),
     GoRoute(
       path: '/auth',
