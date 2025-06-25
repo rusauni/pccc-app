@@ -30,7 +30,7 @@ void main() async {
   String initialPath = prefs?.getString('initialPath') ?? '/';
   runApp(
     VNLMainApp(
-      initialColorScheme: initialColorScheme ?? colorSchemes['lightBlue']!,
+      initialColorScheme: initialColorScheme ?? colorSchemes['lightRed']!,
       // initialColorScheme: ColorSchemes.darkRose(),
       initialRadius: initialRadius,
       initialScaling: initialScaling,

@@ -35,13 +35,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
     });
     return ColoredBox(
-      color: const Color(0xfffffdfa),
+      color: const Color(0xffFBF9E9),
       // color: const Color(0xff2A2438),
       // color: secondrycolor,
       child: SizedBox(
         height: size.height,
         width: size.width,
-        child: Center(child: GtdImage.lottieImage(assetName: "assets/icons/logocicimedia1.json", repeat: false)),
+        child: Center(child: GtdImage.lottieImage(assetName: "assets/icons/iconpccc1.json", repeat: false)),
       ),
     );
   }

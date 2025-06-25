@@ -23,6 +23,8 @@ import 'package:base_app/pages/product_list/view_controller/product_list_page.da
 import 'package:base_app/pages/product_list/view_model/product_list_page_view_model.dart';
 import 'package:base_app/pages/search/view_controller/search_page.dart';
 import 'package:base_app/pages/search/view_model/search_page_view_model.dart';
+import 'package:base_app/pages/theme_setting/view_controller/theme_setting_page.dart';
+import 'package:base_app/pages/theme_setting/view_model/theme_setting_page_view_model.dart';
 import 'package:base_app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -76,7 +78,7 @@ class VNLMainAppState extends State<VNLMainApp> {
     ),
     GoRoute(
         path: '/${AppRouterPath.theme}',
-        builder: (context, state) => SettingThemePage(viewModel: PageViewModel()),
+        builder: (context, state) => ThemeSettingPage(viewModel: ThemeSettingPageViewModel()),
         name: AppRouterPath.theme),
     GoRoute(
       path: '/${AppRouterPath.newsDetail}/:newsId',
