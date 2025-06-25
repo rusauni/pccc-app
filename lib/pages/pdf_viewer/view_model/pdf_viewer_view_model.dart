@@ -1,195 +1,241 @@
 import 'package:base_app/pages/base/view_model/base_view_model.dart';
 import 'package:base_app/pages/pdf_viewer/model/pdf_viewer_model.dart';
 import 'package:base_app/utils/url_helper.dart';
+import 'package:base_app/data/repositories/file_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gtd_helper/helper/gtd_app_logger.dart';
 import 'dart:io';
+import 'package:vnl_common_ui/vnl_ui.dart';
+
+enum DocumentState { downloading, downloaded, error }
 
 class PdfViewerViewModel extends BaseViewModel {
-  PdfViewerModel? _pdfModel;
-  bool _isLoading = false;
-  bool _isDownloading = false;
+  final FileRepository _fileRepository;
+  
+  DocumentState _state = DocumentState.downloading;
+  double _downloadProgress = 0.0;
   String? _errorMessage;
   String? _localFilePath;
-  double _downloadProgress = 0.0;
-  bool _downloadCompleted = false;
+  PdfViewerModel? _document;
+  String? _downloadDirectory;
+
+  PdfViewerViewModel(this._fileRepository);
 
   // Getters
-  PdfViewerModel? get pdfModel => _pdfModel;
-  bool get isLoading => _isLoading;
-  bool get isDownloading => _isDownloading;
+  DocumentState get state => _state;
+  double get downloadProgress => _downloadProgress;
   String? get errorMessage => _errorMessage;
   String? get localFilePath => _localFilePath;
-  double get downloadProgress => _downloadProgress;
-  bool get downloadCompleted => _downloadCompleted;
+  PdfViewerModel? get document => _document;
+  String? get downloadDirectory => _downloadDirectory;
 
-  String get fixedUrl => _pdfModel?.url != null 
-      ? UrlHelper.fixUrl(_pdfModel!.url) 
-      : '';
-
-  void setPdfModel(PdfViewerModel model) {
-    Logger.i('📄 Setting PDF model: ${model.title}');
-    Logger.i('🔗 PDF URL: ${model.url}');
-    _pdfModel = model;
-    _clearError();
-    notifyListeners();
-    _startDownload();
-  }
-
-  Future<void> _startDownload() async {
-    if (_pdfModel == null) {
-      Logger.e('❌ PDF model is null, cannot start download');
-      return;
-    }
-
-    Logger.i('⬇️ Starting PDF download...');
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
+  Future<void> initialize(Map<String, dynamic> documentData) async {
     try {
-      final url = fixedUrl;
-      Logger.i('🔧 Fixed URL: $url');
+      Logger.i('📄 Initializing PDF Viewer with data: $documentData');
       
-      if (url.isEmpty) {
-        throw Exception('URL không hợp lệ');
-      }
-
-      // Kiểm tra xem có phải là file PDF không
-      if (!UrlHelper.isPdfFile(url)) {
-        Logger.e('❌ File is not PDF: $url');
-        throw Exception('File không phải là PDF');
-      }
-
-      Logger.i('✅ URL is valid PDF, starting download...');
-      // Download PDF file
-      await _downloadPdfFile(url);
-
-    } catch (e) {
-      Logger.e('💥 PDF download error: $e');
-      _errorMessage = 'Không thể tải file PDF: ${e.toString()}';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> _downloadPdfFile(String url) async {
-    _isDownloading = true;
-    _downloadProgress = 0.0;
-    _downloadCompleted = false;
-    notifyListeners();
-
-    try {
-      // Tạo local file path
-              final fileName = UrlHelper.getFileName(url);
-      final dir = await getTemporaryDirectory();
-      final filePath = '${dir.path}/$fileName';
-      final file = File(filePath);
-
-      // Kiểm tra file đã tồn tại chưa
-      if (await file.exists()) {
-        _localFilePath = filePath;
-        _downloadCompleted = true;
-        _isDownloading = false;
-        notifyListeners();
+      // Parse document model
+      _document = PdfViewerModel.fromDocument(documentData);
+      Logger.i('📋 Document title: ${_document!.title}');
+      
+      // Get file ID from document data
+      String? fileId = documentData['file'];
+      if (fileId == null || fileId.isEmpty) {
+        Logger.e('❌ No file ID found in document data');
+        _setError('Không tìm thấy file ID');
         return;
       }
 
-      // Download file
-      final request = http.Request('GET', Uri.parse(url));
-      final response = await request.send();
-
-      if (response.statusCode == 200) {
-        final bytes = <int>[];
-        final contentLength = response.contentLength ?? 0;
-        int downloadedBytes = 0;
-
-        await for (final chunk in response.stream) {
-          bytes.addAll(chunk);
-          downloadedBytes += chunk.length;
-          
-          if (contentLength > 0) {
-            _downloadProgress = downloadedBytes / contentLength;
-            notifyListeners();
-          }
+      // If fileId looks like a URL, extract the ID from it
+      if (fileId.startsWith('http')) {
+        Logger.i('🔗 File ID is URL, extracting ID: $fileId');
+        String? extractedId = UrlHelper.extractFileIdFromUrl(fileId);
+        if (extractedId != null) {
+          fileId = extractedId;
+          Logger.i('✅ Extracted file ID: $fileId');
+        } else {
+          Logger.e('❌ Could not extract file ID from URL: $fileId');
+          _setError('Không thể trích xuất file ID từ URL');
+          return;
         }
-
-        await file.writeAsBytes(bytes);
-        _localFilePath = filePath;
-        _downloadCompleted = true;
-      } else {
-        throw Exception('Không thể download file: ${response.statusCode}');
       }
-    } catch (e) {
-      _errorMessage = 'Lỗi download: ${e.toString()}';
-      debugPrint('Download error: $e');
-    } finally {
-      _isDownloading = false;
-      notifyListeners();
+
+      Logger.i('📁 Using file ID: $fileId');
+      
+      // Get file metadata from API
+      final fileModel = await _fileRepository.getFileById(fileId);
+      
+      if (fileModel != null) {
+        Logger.i('📊 File metadata: ${fileModel.filenameDownload}, ${fileModel.type}');
+        
+        // Download file with proper filename
+        await _downloadFile(fileId, fileModel.filenameDownload ?? '${fileModel.id}${fileModel.extension}');
+      } else {
+        Logger.e('❌ Failed to get file metadata');
+        _setError('Không thể lấy thông tin file');
+      }
+      
+    } catch (e, stackTrace) {
+      Logger.e('❌ Error initializing PDF viewer: $e');
+      Logger.e('📍 Stack trace: $stackTrace');
+      _setError('Lỗi khởi tạo: ${e.toString()}');
     }
   }
 
-  Future<void> openPdfFile() async {
-    if (_localFilePath == null) {
-      _errorMessage = 'File chưa được download';
-      notifyListeners();
-      return;
-    }
-
+  Future<void> _downloadFile(String fileId, String filename) async {
     try {
-      final file = File(_localFilePath!);
+      Logger.i('📥 Starting download for file ID: $fileId');
+      Logger.i('📝 Filename: $filename');
+      
+      _setState(DocumentState.downloading);
+      _setProgress(0.0);
+
+      // Get download directory
+      Directory directory;
+      if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      } else {
+        directory = Directory('/storage/emulated/0/Download');
+        if (!await directory.exists()) {
+          directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+        }
+      }
+
+      _downloadDirectory = directory.path;
+      Logger.i('📁 Download directory: $_downloadDirectory');
+
+      // Check if file already exists
+      final filePath = '${directory.path}/$filename';
+      final file = File(filePath);
+      
       if (await file.exists()) {
-        final uri = Uri.file(_localFilePath!);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          throw Exception('Không thể mở file PDF');
+        Logger.i('✅ File already exists: $filePath');
+        _localFilePath = filePath;
+        _setState(DocumentState.downloaded);
+        return;
+      }
+
+      // Get download URL
+      final downloadUrl = _fileRepository.getFileDownloadUrl(fileId);
+      Logger.i('🔗 Download URL: $downloadUrl');
+
+      // Start download
+      final response = await http.get(Uri.parse(downloadUrl));
+      
+      if (response.statusCode == 200) {
+        // Write file
+        await file.writeAsBytes(response.bodyBytes);
+        _localFilePath = filePath;
+        
+        Logger.i('✅ File downloaded successfully to: $filePath');
+        Logger.i('📊 File size: ${response.bodyBytes.length} bytes');
+        
+        _setProgress(1.0);
+        _setState(DocumentState.downloaded);
+        
+        // List files in directory for debugging
+        final files = await directory.list().toList();
+        Logger.i('📂 Files in download directory:');
+        for (var file in files) {
+          Logger.i('  - ${file.path}');
+        }
+        
+      } else {
+        Logger.e('❌ Download failed with status: ${response.statusCode}');
+        _setError('Tải file thất bại. Mã lỗi: ${response.statusCode}');
+      }
+      
+    } catch (e, stackTrace) {
+      Logger.e('❌ Error downloading file: $e');
+      Logger.e('📍 Stack trace: $stackTrace');
+      _setError('Lỗi tải file: ${e.toString()}');
+    }
+  }
+
+  Future<void> openDownloadFolder() async {
+    try {
+      if (_downloadDirectory == null) {
+        Logger.e('❌ Download directory not set');
+        return;
+      }
+
+      Logger.i('📂 Attempting to open download folder: $_downloadDirectory');
+
+      if (Platform.isIOS) {
+        // Try to open iOS Files app
+        final uri = Uri.parse('shareddocuments://$_downloadDirectory');
+        Logger.i('🍎 Trying iOS Files app with URI: $uri');
+        
+        bool launched = await launchUrl(uri);
+        if (!launched) {
+          Logger.w('⚠️ Could not open iOS Files app, showing path info');
+          // Show path info to user
+          _showPathInfo();
         }
       } else {
-        throw Exception('File không tồn tại');
+        // Android - open file manager
+        final uri = Uri.parse('content://com.android.externalstorage.documents/root/primary:Download');
+        Logger.i('🤖 Trying Android file manager with URI: $uri');
+        
+        bool launched = await launchUrl(uri);
+        if (!launched) {
+          Logger.w('⚠️ Could not open Android file manager, showing path info');
+          _showPathInfo();
+        }
       }
     } catch (e) {
-      _errorMessage = 'Lỗi mở file: ${e.toString()}';
-      debugPrint('Open file error: $e');
-      notifyListeners();
+      Logger.e('❌ Error opening download folder: $e');
+      _showPathInfo();
     }
   }
 
-  Future<void> openInBrowser() async {
-    final url = fixedUrl;
-    if (url.isNotEmpty) {
-      try {
-        if (await canLaunchUrl(Uri.parse(url))) {
-          await launchUrl(
-            Uri.parse(url),
-            mode: LaunchMode.externalNonBrowserApplication,
-          );
-        } else {
-          throw Exception('Không thể mở URL');
-        }
-      } catch (e) {
-        _errorMessage = 'Lỗi mở trình duyệt: ${e.toString()}';
-        debugPrint('Open browser error: $e');
-        notifyListeners();
+  void _showPathInfo() {
+    Logger.i('ℹ️ Showing download path info to user');
+    // TODO: Could show a dialog or message with the download path
+    // For now, we'll just log it
+    Logger.i('📁 Files are stored in: $_downloadDirectory');
+  }
+
+  Future<void> retryDownload() async {
+    if (_document != null) {
+      _setState(DocumentState.downloading);
+      _setProgress(0.0);
+      _errorMessage = null;
+      
+      // Extract file ID again and retry
+      String? fileId = _document!.url;
+      if (fileId.startsWith('http')) {
+        fileId = UrlHelper.extractFileIdFromUrl(fileId);
       }
-    } else {
-      _errorMessage = 'URL không hợp lệ';
-      notifyListeners();
+      
+             if (fileId != null) {
+         final fileModel = await _fileRepository.getFileById(fileId);
+         if (fileModel != null) {
+           await _downloadFile(fileId, fileModel.filenameDownload ?? '${fileModel.id}${fileModel.extension}');
+         } else {
+           _setError('Không thể lấy thông tin file');
+         }
+       } else {
+         _setError('Không thể trích xuất file ID');
+       }
     }
   }
 
-  Future<void> retry() async {
-    _clearError();
-    await _startDownload();
+  void _setState(DocumentState newState) {
+    _state = newState;
+    notifyListeners();
   }
 
-  void _clearError() {
-    _errorMessage = null;
+  void _setProgress(double progress) {
+    _downloadProgress = progress;
     notifyListeners();
+  }
+
+  void _setError(String message) {
+    _errorMessage = message;
+    _setState(DocumentState.error);
   }
 
   @override

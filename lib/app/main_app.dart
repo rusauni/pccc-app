@@ -92,14 +92,11 @@ class VNLMainAppState extends State<VNLMainApp> {
     GoRoute(
         path: '/${AppRouterPath.pdfViewer}',
         builder: (context, state) {
-          // Get PDF model from extra data
-          final pdfModelData = state.extra as Map<String, dynamic>?;
-          final pdfModel = pdfModelData != null 
-            ? PdfViewerModel.fromDocument(pdfModelData)
-            : PdfViewerModel(title: 'PDF Document', url: '');
+          // Get document data from extra
+          final documentData = state.extra as Map<String, dynamic>? ?? {};
           return PdfViewerPage(
             viewModel: PdfViewerPageViewModel(),
-            pdfModel: pdfModel,
+            documentData: documentData,
           );
         },
         name: AppRouterPath.pdfViewer),

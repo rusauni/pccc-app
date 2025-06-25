@@ -195,8 +195,8 @@ class _DocumentsTabState extends State<DocumentsTab> {
         child: VNLButton(
           style: ButtonStyle.ghost(),
           onPressed: () {
-            if (fileExtension.toUpperCase() == 'PDF') {
-              _openPdfViewer(context, document);
+            if (UrlHelper.isSupportedDocument(document.file ?? '')) {
+              _openDocumentViewer(context, document);
             } else {
               _showUnsupportedFileDialog(context, fileExtension);
             }
@@ -264,10 +264,10 @@ class _DocumentsTabState extends State<DocumentsTab> {
     return UrlHelper.getFileExtension(fileName).toUpperCase();
   }
 
-  void _openPdfViewer(BuildContext context, DocumentModel document) {
+  void _openDocumentViewer(BuildContext context, DocumentModel document) {
     // Fix URL using UrlHelper 
     String fileUrl = document.file ?? '';
-    Logger.i('📄 Opening PDF Viewer for document: ${document.title}');
+    Logger.i('📄 Opening Document Viewer for: ${document.title}');
     Logger.i('🔗 Original file URL: $fileUrl');
     
     if (fileUrl.isNotEmpty) {
@@ -275,8 +275,8 @@ class _DocumentsTabState extends State<DocumentsTab> {
       Logger.i('🔧 Fixed URL: $fileUrl');
     }
     
-    // Create PDF model data
-    final pdfModelData = {
+    // Create document model data
+    final documentModelData = {
       'title': document.title,
       'file': fileUrl,
       'fileUrl': fileUrl,
@@ -286,12 +286,12 @@ class _DocumentsTabState extends State<DocumentsTab> {
       'documentTypeName': document.documentTypeName,
     };
     
-    Logger.i('📦 PDF Model Data: $pdfModelData');
+    Logger.i('📦 Document Model Data: $documentModelData');
     
-    // Navigate to PDF viewer
+    // Navigate to document viewer (renamed from PDF viewer to support multiple types)
     context.pushNamed(
-      AppRouterPath.pdfViewer,
-      extra: pdfModelData,
+      AppRouterPath.pdfViewer, // Keep same route for now, but supports all document types
+      extra: documentModelData,
     );
   }
 
@@ -406,8 +406,8 @@ class _DocumentsTabState extends State<DocumentsTab> {
               title: 'Xem trước',
               onTap: () {
                 Navigator.pop(context);
-                if (fileExtension.toUpperCase() == 'PDF') {
-                  _openPdfViewer(context, document);
+                if (UrlHelper.isSupportedDocument(document.file ?? '')) {
+                  _openDocumentViewer(context, document);
                 } else {
                   _showUnsupportedFileDialog(context, fileExtension);
                 }

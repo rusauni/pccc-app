@@ -7,12 +7,12 @@ import 'package:flutter/material.dart' hide ButtonStyle;
 import '../../base/view_controller/page_view_controller.dart';
 
 class PdfViewerPage extends PageViewController<PdfViewerPageViewModel> {
-  final PdfViewerModel pdfModel;
+  final Map<String, dynamic> documentData;
 
   const PdfViewerPage({
     super.key, 
     required super.viewModel,
-    required this.pdfModel,
+    required this.documentData,
   });
 
   @override
@@ -23,9 +23,10 @@ class PdfViewerPageState extends PageViewControllerState<PdfViewerPage> {
   @override
   void initState() {
     super.initState();
-    // Set PDF model and update title
-    widget.viewModel.pdfViewerViewModel.setPdfModel(widget.pdfModel);
-    widget.viewModel.updateTitle(widget.pdfModel.title);
+    // Initialize PDF viewer with document data
+    widget.viewModel.pdfViewerViewModel.initialize(widget.documentData);
+    final title = widget.documentData['title'] ?? 'Xem tài liệu';
+    widget.viewModel.updateTitle(title);
   }
 
   @override
@@ -74,7 +75,7 @@ class PdfViewerPageState extends PageViewControllerState<PdfViewerPage> {
   }
 
   Widget _buildDocumentInfoSheet() {
-    final model = widget.pdfModel;
+    final model = widget.viewModel.pdfViewerViewModel.document;
     return Container(
       decoration: BoxDecoration(
         color: VNLTheme.of(context).colorScheme.background,
@@ -109,14 +110,17 @@ class PdfViewerPageState extends PageViewControllerState<PdfViewerPage> {
           const Gap(20),
           
           // Document info
-          _buildInfoRow('Tiêu đề', model.title),
-          if (model.documentNumber != null) 
-            _buildInfoRow('Số văn bản', model.documentNumber!),
-          if (model.effectiveDate != null)
-            _buildInfoRow('Ngày hiệu lực', model.effectiveDate!),
-          if (model.description != null)
-            _buildInfoRow('Mô tả', model.description!),
-          _buildInfoRow('URL', widget.viewModel.pdfViewerViewModel.fixedUrl),
+          if (model != null) ...[
+            _buildInfoRow('Tiêu đề', model.title),
+            if (model.documentNumber != null) 
+              _buildInfoRow('Số văn bản', model.documentNumber!),
+            if (model.effectiveDate != null)
+              _buildInfoRow('Ngày hiệu lực', model.effectiveDate!),
+            if (model.description != null)
+              _buildInfoRow('Mô tả', model.description!),
+            _buildInfoRow('URL', model.url),
+          ] else
+            Text('Không có thông tin tài liệu'),
           
           const Gap(24),
           

@@ -74,6 +74,7 @@ class PcccEndpoints {
   static const String featuredArticles = '$items/featured_articles';
   static const String featuredArticlesArticles = '$items/featured_articles_articles';
   static const String videos = '$items/videos';
+  static const String files = 'files';
 
   // API endpoints
   static const String chat = '$api/chat';
@@ -87,6 +88,7 @@ class PcccEndpoints {
   static String issuingAgencyById(int id) => '$issuingAgencies/$id';
   static String featuredArticleById(int id) => '$featuredArticles/$id';
   static String videoById(int id) => '$videos/$id';
+  static String fileById(String id) => '$files/$id';
   static String assetById(String id) => '$assets/$id';
 
   // File download with transformations

@@ -17,19 +17,14 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
   }
 
   Widget _buildContent(BuildContext context) {
-    if (viewModel.isLoading || viewModel.isDownloading) {
-      return _buildDownloadState(context);
+    switch (viewModel.state) {
+      case DocumentState.downloading:
+        return _buildDownloadState(context);
+      case DocumentState.downloaded:
+        return _buildDownloadedState(context);
+      case DocumentState.error:
+        return _buildErrorState(context);
     }
-
-    if (viewModel.errorMessage != null) {
-      return _buildErrorState(context);
-    }
-
-    if (viewModel.downloadCompleted && viewModel.localFilePath != null) {
-      return _buildDownloadedState(context);
-    }
-
-    return _buildEmptyState(context);
   }
 
   Widget _buildDownloadState(BuildContext context) {
@@ -53,7 +48,7 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
             ),
             const Gap(24),
             Text(
-              viewModel.pdfModel?.title ?? 'PDF Document',
+              viewModel.document?.title ?? 'Tài liệu',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -62,7 +57,7 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
             ),
             const Gap(16),
             Text(
-              viewModel.isDownloading ? 'Đang tải file PDF...' : 'Đang chuẩn bị tải...',
+              'Đang tải tài liệu...',
               style: TextStyle(
                 fontSize: 16,
                 color: VNLTheme.of(context).colorScheme.mutedForeground,
@@ -124,7 +119,7 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
             ),
             const Gap(24),
             Text(
-              viewModel.pdfModel?.title ?? 'PDF Document',
+              viewModel.document?.title ?? 'Tài liệu',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -132,9 +127,9 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
               textAlign: TextAlign.center,
             ),
             const Gap(8),
-            if (viewModel.pdfModel?.effectiveDate != null) ...[
+            if (viewModel.document?.effectiveDate != null) ...[
               Text(
-                'Ngày hiệu lực: ${viewModel.pdfModel!.effectiveDate}',
+                'Ngày hiệu lực: ${viewModel.document!.effectiveDate}',
                 style: TextStyle(
                   fontSize: 14,
                   color: VNLTheme.of(context).colorScheme.mutedForeground,
@@ -143,7 +138,7 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
               const Gap(8),
             ],
             Text(
-              'Tải thành công! Chọn cách mở file PDF',
+              'Tải thành công! File đã được lưu vào thiết bị.',
               style: TextStyle(
                 fontSize: 16,
                 color: material.Colors.green,
@@ -151,36 +146,63 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
               ),
               textAlign: TextAlign.center,
             ),
-            const Gap(32),
+            const Gap(16),
+            if (viewModel.downloadDirectory != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: VNLTheme.of(context).colorScheme.muted,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          BootstrapIcons.folder2,
+                          size: 16,
+                          color: VNLTheme.of(context).colorScheme.mutedForeground,
+                        ),
+                        const Gap(8),
+                        Text(
+                          'Đường dẫn:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: VNLTheme.of(context).colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Gap(4),
+                    Text(
+                      viewModel.downloadDirectory!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        color: VNLTheme.of(context).colorScheme.mutedForeground,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(16),
+            ],
             
-            // Buttons
+            // Single button to open download folder
             SizedBox(
               width: double.infinity,
               child: VNLButton(
                 style: ButtonStyle.primary(),
-                onPressed: viewModel.openPdfFile,
+                onPressed: viewModel.openDownloadFolder,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(BootstrapIcons.boxArrowUpRight, size: 18),
+                    Icon(BootstrapIcons.folder2Open, size: 18),
                     const Gap(8),
-                    Text('Mở trong ứng dụng PDF'),
-                  ],
-                ),
-              ),
-            ),
-            const Gap(16),
-            SizedBox(
-              width: double.infinity,
-              child: VNLButton(
-                style: ButtonStyle.ghost(),
-                onPressed: viewModel.openInBrowser,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(BootstrapIcons.globe, size: 18),
-                    const Gap(8),
-                    Text('Mở trong trình duyệt'),
+                    Text('Mở thư mục chứa file'),
                   ],
                 ),
               ),
@@ -223,7 +245,7 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
             const Gap(24),
             VNLButton(
               style: ButtonStyle.primary(),
-              onPressed: viewModel.retry,
+              onPressed: viewModel.retryDownload,
               child: Text('Thử lại'),
             ),
           ],
