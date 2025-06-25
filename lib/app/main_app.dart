@@ -224,7 +224,7 @@ class VNLMainAppState extends State<VNLMainApp> {
       child: VNLookApp.router(
         routerConfig: router,
         debugShowCheckedModeBanner: false,
-        title: 'VNL UI Flutter',
+        title: 'An Toàn PCCC',
         scaling: AdaptiveScaling(scaling),
         enableScrollInterception: true,
         // popoverHandler: DialogOverlayHandler(),

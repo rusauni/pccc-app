@@ -1,11 +1,11 @@
 {
-    "name": "base_app",
-    "short_name": "base_app",
+    "name": "An Toàn PCCC",
+    "short_name": "An Toàn PCCC",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",
     "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "description": "Ứng dụng quản lý phòng cháy chữa cháy toàn diện",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

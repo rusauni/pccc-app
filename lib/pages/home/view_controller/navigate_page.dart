@@ -24,8 +24,8 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
   List<Widget> buildHeaders(BuildContext pageContext) {
     return [
       VNLAppBar(
-        title: const Text('PCCC 40'),
-        subtitle: const Text('PCCC App'),
+        title: const Text('An Toàn PCCC'),
+        subtitle: const Text('Quản lý phòng cháy chữa cháy'),
         leading: [
           VNLOutlineButton(
             onPressed: () {},
