@@ -27,6 +27,9 @@ import 'package:base_app/pages/theme_setting/view_controller/theme_setting_page.
 import 'package:base_app/pages/theme_setting/view_model/theme_setting_page_view_model.dart';
 import 'package:base_app/pages/account_detail/view_controller/account_detail_page.dart';
 import 'package:base_app/pages/account_detail/view_model/account_detail_page_view_model.dart';
+import 'package:base_app/pages/pdf_viewer/view_controller/pdf_viewer_page.dart';
+import 'package:base_app/pages/pdf_viewer/view_model/pdf_viewer_page_view_model.dart';
+import 'package:base_app/pages/pdf_viewer/model/pdf_viewer_model.dart';
 import 'package:base_app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -86,6 +89,20 @@ class VNLMainAppState extends State<VNLMainApp> {
         path: '/${AppRouterPath.accountDetail}',
         builder: (context, state) => AccountDetailPage(viewModel: AccountDetailPageViewModel()),
         name: AppRouterPath.accountDetail),
+    GoRoute(
+        path: '/${AppRouterPath.pdfViewer}',
+        builder: (context, state) {
+          // Get PDF model from extra data
+          final pdfModelData = state.extra as Map<String, dynamic>?;
+          final pdfModel = pdfModelData != null 
+            ? PdfViewerModel.fromDocument(pdfModelData)
+            : PdfViewerModel(title: 'PDF Document', url: '');
+          return PdfViewerPage(
+            viewModel: PdfViewerPageViewModel(),
+            pdfModel: pdfModel,
+          );
+        },
+        name: AppRouterPath.pdfViewer),
     GoRoute(
       path: '/${AppRouterPath.newsDetail}/:newsId',
       builder: (context, state) {

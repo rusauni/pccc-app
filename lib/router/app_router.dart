@@ -9,6 +9,7 @@ class AppRouterPath {
   static const String profile = "profile";
   static const String settings = "settings";
   static const String accountDetail = "account-detail";
+  static const String pdfViewer = "pdf-viewer";
   static const String about = "about";
   static const String contactUs = "contact-us";
   static const String news = "news";

@@ -1,41 +1,193 @@
 import 'package:vnl_common_ui/vnl_ui.dart';
-import 'package:flutter/material.dart' show Colors, showModalBottomSheet, Dialog, Scaffold, AppBar, Navigator;
+import 'package:flutter/material.dart' show Colors, showModalBottomSheet, Dialog, Scaffold, AppBar, Navigator, RefreshIndicator;
+import 'package:go_router/go_router.dart';
+import 'package:base_app/router/app_router.dart';
+import 'package:base_app/utils/url_helper.dart';
+import 'package:base_app/data/repositories/document_repository.dart';
+import 'package:base_app/data/models/document_model.dart';
+import 'package:base_app/data/api_client/base_api_client.dart';
+import 'package:gtd_helper/helper/gtd_app_logger.dart';
+import 'package:base_app/data/api_client/pccc_environment.dart';
+import 'package:gtd_network/gtd_network.dart';
 
-class DocumentsTab extends StatelessWidget {
+class DocumentsTab extends StatefulWidget {
   DocumentsTab({super.key});
 
   @override
+  State<DocumentsTab> createState() => _DocumentsTabState();
+}
+
+class _DocumentsTabState extends State<DocumentsTab> {
+  List<DocumentModel> documents = [];
+  bool isLoading = true;
+  String? errorMessage;
+  late DocumentRepository _documentRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _documentRepository = DocumentRepositoryImpl(
+      apiClient: BaseApiClient(
+        environment: PcccEnvironment.development(),
+      ),
+      useMockData: false, // Chuyển sang API thật
+    );
+    _loadDocuments();
+  }
+
+  Future<void> _loadDocuments() async {
+    try {
+      Logger.i('🔄 Starting to load documents from API...');
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      // Gọi API với filter category = 7 (Văn bản pháp quy) và các fields cần thiết
+      Logger.i('📡 Calling API with filter category = 7');
+      final response = await _documentRepository.getDocuments(
+        filter: '{"category":{"_eq":7}}',
+        fields: [
+          'id',
+          'title', 
+          'file',
+          'description',
+          'category.name',
+          'document_number',
+          'sub_category',
+          'agency_id',
+          'document_type_id',
+          'agency_id.agency_name',
+          'document_type_id.document_type_name',
+          'effective_date',
+          'sub_category.sub_name'
+        ],
+        limit: 20,
+        sort: ['-effective_date'],
+      );
+
+      Logger.i('📋 API Response - Success: ${response.isSuccess}, HasData: ${response.data != null}');
+      
+      if (response.isSuccess && response.data != null) {
+        Logger.i('✅ Successfully loaded ${response.data!.data.length} documents');
+        
+        // Log detailed info about first document for debugging
+        if (response.data!.data.isNotEmpty) {
+          final firstDoc = response.data!.data.first;
+          Logger.i('🔍 Sample document:');
+          Logger.i('   - Title: ${firstDoc.title}');
+          Logger.i('   - File: ${firstDoc.file}');
+          Logger.i('   - DocumentType: ${firstDoc.documentTypeName}');
+          Logger.i('   - Agency: ${firstDoc.agencyName}');
+          Logger.i('   - Number: ${firstDoc.documentNumber}');
+        }
+        
+        setState(() {
+          documents = response.data!.data;
+          isLoading = false;
+        });
+      } else {
+        final errorMsg = response.error?.error.message ?? 'Có lỗi xảy ra khi tải dữ liệu';
+        Logger.e('❌ API Error: $errorMsg');
+        Logger.e('📊 Response details: ${response.error?.toString()}');
+        setState(() {
+          errorMessage = errorMsg;
+          isLoading = false;
+        });
+      }
+    } catch (e, stackTrace) {
+      Logger.e('💥 Exception loading documents: $e');
+      Logger.e('📍 Stack trace: $stackTrace');
+      setState(() {
+        errorMessage = 'Không thể kết nối đến máy chủ: ${e.toString()}';
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: EdgeInsets.all(16),
-      itemCount: _dummyDocuments.length,
-      itemBuilder: (context, index) {
-        final document = _dummyDocuments[index];
-        return _buildDocumentItem(
-          context: context,
-          title: document['title']!,
-          type: document['type']!,
-          date: document['date']!,
-          size: document['size']!,
-          url: document['url']!,
-          icon: _getIconForDocType(document['type']!),
-          color: _getColorForDocType(context, document['type']!),
-        );
-      },
+    if (isLoading) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              BootstrapIcons.exclamationTriangle,
+              size: 48,
+              color: VNLTheme.of(context).colorScheme.mutedForeground,
+            ),
+            Gap(16),
+            Text(
+              errorMessage!,
+              style: TextStyle(
+                color: VNLTheme.of(context).colorScheme.mutedForeground,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Gap(16),
+                         VNLButton(
+               style: ButtonStyle.primary(),
+               onPressed: _loadDocuments,
+               child: Text('Thử lại'),
+             ),
+          ],
+        ),
+      );
+    }
+
+    if (documents.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              BootstrapIcons.fileText,
+              size: 48,
+              color: VNLTheme.of(context).colorScheme.mutedForeground,
+            ),
+            Gap(16),
+            Text(
+              'Chưa có tài liệu nào',
+              style: TextStyle(
+                color: VNLTheme.of(context).colorScheme.mutedForeground,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadDocuments,
+      child: ListView.builder(
+        padding: EdgeInsets.all(16),
+        itemCount: documents.length,
+        itemBuilder: (context, index) {
+          final document = documents[index];
+          return _buildDocumentItem(
+            context: context,
+            document: document,
+          );
+        },
+      ),
     );
   }
 
   Widget _buildDocumentItem({
     required BuildContext context,
-    required String title,
-    required String type,
-    required String date,
-    required String size,
-    required String url,
-    required IconData icon,
-    required Color color,
+    required DocumentModel document,
   }) {
     final theme = VNLTheme.of(context);
+    final fileExtension = _getFileExtension(document.file ?? '');
+    final icon = _getIconForDocType(fileExtension);
+    final color = _getColorForDocType(context, fileExtension);
     
     return Padding(
       padding: EdgeInsets.only(bottom: 12),
@@ -43,7 +195,11 @@ class DocumentsTab extends StatelessWidget {
         child: VNLButton(
           style: ButtonStyle.ghost(),
           onPressed: () {
-            _showDocumentPreview(context, title, type, url);
+            if (fileExtension.toUpperCase() == 'PDF') {
+              _openPdfViewer(context, document);
+            } else {
+              _showUnsupportedFileDialog(context, fileExtension);
+            }
           },
           child: Padding(
             padding: EdgeInsets.all(16),
@@ -63,21 +219,35 @@ class DocumentsTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        document.title,
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       SizedBox(height: 4),
-                      Text('$type • $size • $date', style: TextStyle(
-                        fontSize: 12, 
-                        color: theme.colorScheme.mutedForeground
-                      )),
+                      Text(
+                        '${document.documentTypeName ?? fileExtension.toUpperCase()} • ${document.documentNumber ?? 'N/A'}', 
+                        style: TextStyle(
+                          fontSize: 12, 
+                          color: theme.colorScheme.mutedForeground
+                        )
+                      ),
+                      if (document.agencyName != null) ...[
+                        SizedBox(height: 2),
+                        Text(
+                          '${document.agencyName} • ${document.effectiveDate ?? 'N/A'}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.mutedForeground,
+                            fontStyle: FontStyle.italic,
+                          )
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 VNLButton(
                   style: ButtonStyle.ghost(density: ButtonDensity.icon),
                   onPressed: () {
-                    _showDocumentOptions(context, title, type, url);
+                    _showDocumentOptions(context, document);
                   },
                   child: Icon(BootstrapIcons.threeDotsVertical),
                 ),
@@ -89,18 +259,76 @@ class DocumentsTab extends StatelessWidget {
     );
   }
 
-  void _showDocumentPreview(BuildContext context, String title, String type, String url) {
+  String _getFileExtension(String fileName) {
+    if (fileName.isEmpty) return 'PDF';
+    return UrlHelper.getFileExtension(fileName).toUpperCase();
+  }
+
+  void _openPdfViewer(BuildContext context, DocumentModel document) {
+    // Fix URL using UrlHelper 
+    String fileUrl = document.file ?? '';
+    Logger.i('📄 Opening PDF Viewer for document: ${document.title}');
+    Logger.i('🔗 Original file URL: $fileUrl');
+    
+    if (fileUrl.isNotEmpty) {
+      fileUrl = UrlHelper.fixUrl(fileUrl);
+      Logger.i('🔧 Fixed URL: $fileUrl');
+    }
+    
+    // Create PDF model data
+    final pdfModelData = {
+      'title': document.title,
+      'file': fileUrl,
+      'fileUrl': fileUrl,
+      'effectiveDate': document.effectiveDate,
+      'documentNumber': document.documentNumber,
+      'agencyName': document.agencyName,
+      'documentTypeName': document.documentTypeName,
+    };
+    
+    Logger.i('📦 PDF Model Data: $pdfModelData');
+    
+    // Navigate to PDF viewer
+    context.pushNamed(
+      AppRouterPath.pdfViewer,
+      extra: pdfModelData,
+    );
+  }
+
+  void _showUnsupportedFileDialog(BuildContext context, String type) {
     showDialog(
       context: context,
-      builder: (context) => DocumentPreviewDialog(
-        title: title,
-        type: type,
-        url: url,
+      builder: (context) => Dialog(
+        child: Container(
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: VNLTheme.of(context).colorScheme.background,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Định dạng không hỗ trợ',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const Gap(16),
+              Text('Hiện tại chưa hỗ trợ xem trước file $type. Vui lòng tải về để xem.'),
+              const Gap(24),
+              VNLButton.ghost(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Đóng'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _showDocumentOptions(BuildContext context, String title, String type, String url) {
+  void _showDocumentOptions(BuildContext context, DocumentModel document) {
+    final fileExtension = _getFileExtension(document.file ?? '');
+    
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -113,11 +341,64 @@ class DocumentsTab extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              document.title,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+            if (document.description != null && document.description!.isNotEmpty) ...[
+              Gap(8),
+              Text(
+                document.description!,
+                style: TextStyle(
+                  color: VNLTheme.of(context).colorScheme.mutedForeground,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            if (document.agencyName != null || document.documentTypeName != null) ...[
+              Gap(8),
+              Row(
+                children: [
+                  if (document.documentTypeName != null) ...[
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        document.documentTypeName!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Gap(8),
+                  ],
+                  if (document.agencyName != null) ...[
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        document.agencyName!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.green,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
             Gap(16),
             _buildOptionItem(
               context,
@@ -125,7 +406,11 @@ class DocumentsTab extends StatelessWidget {
               title: 'Xem trước',
               onTap: () {
                 Navigator.pop(context);
-                _showDocumentPreview(context, title, type, url);
+                if (fileExtension.toUpperCase() == 'PDF') {
+                  _openPdfViewer(context, document);
+                } else {
+                  _showUnsupportedFileDialog(context, fileExtension);
+                }
               },
             ),
             _buildOptionItem(
@@ -210,58 +495,6 @@ class DocumentsTab extends StatelessWidget {
         return VNLTheme.of(context).colorScheme.mutedForeground;
     }
   }
-
-  final List<Map<String, String>> _dummyDocuments = [
-    {
-      'title': 'Quy định PCCC cho khu dân cư',
-      'type': 'PDF',
-      'date': '20/05/2025',
-      'size': '2.4 MB',
-      'url': 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    },
-    {
-      'title': 'Hướng dẫn sử dụng thiết bị báo cháy',
-      'type': 'DOCX',
-      'date': '15/05/2025',
-      'size': '1.8 MB',
-      'url': 'https://file-examples.com/storage/fe68c9fa7d66dab0a8c3b57/2017/10/file_example_DOC_10kB.doc',
-    },
-    {
-      'title': 'Danh sách kiểm tra thiết bị PCCC',
-      'type': 'XLSX',
-      'date': '10/05/2025',
-      'size': '3.2 MB',
-      'url': 'https://file-examples.com/storage/fe68c9fa7d66dab0a8c3b57/2017/10/file_example_XLS_10.xls',
-    },
-    {
-      'title': 'Bài trình bày về phòng cháy chữa cháy',
-      'type': 'PPTX',
-      'date': '05/05/2025',
-      'size': '5.7 MB',
-      'url': 'https://file-examples.com/storage/fe68c9fa7d66dab0a8c3b57/2017/08/file_example_PPT_1MB.ppt',
-    },
-    {
-      'title': 'Sơ đồ thoát hiểm tòa nhà A',
-      'type': 'JPG',
-      'date': '01/05/2025',
-      'size': '1.2 MB',
-      'url': 'https://file-examples.com/storage/fe68c9fa7d66dab0a8c3b57/2017/10/file_example_JPG_100kB.jpg',
-    },
-    {
-      'title': 'Biên bản kiểm tra PCCC định kỳ',
-      'type': 'PDF',
-      'date': '25/04/2025',
-      'size': '1.5 MB',
-      'url': 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    },
-    {
-      'title': 'Kế hoạch diễn tập PCCC năm 2025',
-      'type': 'DOCX',
-      'date': '20/04/2025',
-      'size': '2.1 MB',
-      'url': 'https://file-examples.com/storage/fe68c9fa7d66dab0a8c3b57/2017/10/file_example_DOC_10kB.doc',
-    },
-  ];
 }
 
 class DocumentPreviewDialog extends StatelessWidget {

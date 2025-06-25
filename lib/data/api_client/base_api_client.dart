@@ -1,5 +1,6 @@
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:gtd_network/gtd_network.dart';
+import 'package:gtd_helper/helper/gtd_app_logger.dart';
 import '../models/api_error_model.dart';
 
 class BaseApiClient {
@@ -161,10 +162,61 @@ class BaseApiClient {
   ) {
     final statusCode = response.statusCode ?? 200;
     
+    Logger.i('🌐 API Response - Status: $statusCode, Data Type: ${response.data.runtimeType}');
+    Logger.i('📊 Response Data: ${response.data}');
+    
     if (statusCode >= 200 && statusCode < 300) {
+      // Check if response.data is null
+      if (response.data == null) {
+        Logger.e('❌ Response data is null for successful status code');
+        final apiError = ApiErrorModel(
+          error: ApiError(
+            code: statusCode,
+            message: 'API trả về dữ liệu rỗng',
+          ),
+        );
+        return ApiResponse.error(apiError, statusCode: statusCode);
+      }
+      
+      // Check if response.data is Map
+      if (response.data is! Map<String, dynamic>) {
+        Logger.e('❌ Response data is not Map<String, dynamic>: ${response.data.runtimeType}');
+        final apiError = ApiErrorModel(
+          error: ApiError(
+            code: statusCode,
+            message: 'Định dạng dữ liệu API không đúng',
+          ),
+        );
+        return ApiResponse.error(apiError, statusCode: statusCode);
+      }
+      
       final data = response.data as Map<String, dynamic>;
+      Logger.i('✅ Successfully parsed response data');
       return ApiResponse.success(fromJson(data), statusCode: statusCode);
     } else {
+      Logger.e('❌ Error status code: $statusCode');
+      
+      // Handle error response data
+      if (response.data == null) {
+        final apiError = ApiErrorModel(
+          error: ApiError(
+            code: statusCode,
+            message: 'Lỗi máy chủ: $statusCode',
+          ),
+        );
+        return ApiResponse.error(apiError, statusCode: statusCode);
+      }
+      
+      if (response.data is! Map<String, dynamic>) {
+        final apiError = ApiErrorModel(
+          error: ApiError(
+            code: statusCode,
+            message: 'Lỗi định dạng phản hồi từ máy chủ',
+          ),
+        );
+        return ApiResponse.error(apiError, statusCode: statusCode);
+      }
+      
       final errorData = response.data as Map<String, dynamic>;
       final error = ApiErrorModel.fromJson(errorData);
       return ApiResponse.error(error, statusCode: statusCode);
