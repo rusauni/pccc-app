@@ -131,9 +131,9 @@ class ProductListView extends BaseView<ProductListViewModel> {
         physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 0.65,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
         itemCount: viewModel.products.length,
         itemBuilder: (context, index) {
@@ -145,50 +145,78 @@ class ProductListView extends BaseView<ProductListViewModel> {
   }
 
   Widget _buildProductCard(BuildContext context, Product product) {
-    return VNLCard(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: VNLTheme.of(context).colorScheme.card,
+        border: Border.all(
+          color: VNLTheme.of(context).colorScheme.border,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: InkWell(
         onTap: () {
           // Navigate to product detail
           // context.go('/product-detail/${product.id}');
         },
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product image
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
                   ),
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: Colors.grey.withValues(alpha: 0.05),
                 ),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
                   ),
                   child: Image.network(
                     product.imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          size: 48,
-                          color: Colors.grey,
+                        color: Colors.grey[100],
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.image_not_supported,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                            const Gap(4),
+                            Text(
+                              'Không có ảnh',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
-                        color: Colors.grey[200],
+                        color: Colors.grey[100],
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),
@@ -207,30 +235,37 @@ class ProductListView extends BaseView<ProductListViewModel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Product name (1 line only)
+                    const Spacer(),
+                    
+                    // Product name (2 lines max) - moved near button
                     Text(
                       product.name,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        height: 1.2,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    const Spacer(),
+                    const Gap(6),
                     
-                    // Contact button
+                    // Contact button - shortened text
                     SizedBox(
                       width: double.infinity,
+                      height: 32,
                       child: VNLButton(
                         style: ButtonVariance.destructive,
                         onPressed: () {
                           _showContactDialog(context, product);
                         },
                         child: const Text(
-                          'Liên hệ nhận báo giá',
-                          style: TextStyle(fontSize: 11),
+                          'Báo giá',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),

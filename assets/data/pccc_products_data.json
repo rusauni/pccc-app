@@ -1,0 +1,359 @@
+{
+  "categories": [
+    {
+      "id": "fe_001",
+      "name": "Bình chữa cháy",
+      "description": "Thiết bị chữa cháy cầm tay",
+      "icon": "fire_extinguisher",
+      "products": [
+        {
+          "id": "product_001",
+          "name": "Bình chữa cháy ABC 4kg",
+          "description": "Bình chữa cháy bột ABC 4kg, màu đỏ, có nhãn dán hướng dẫn. Phù hợp cho đám cháy loại A, B, C.",
+          "image": "https://thietbipccc.net/wp-content/uploads/2018/11/binh-chua-chay-4kg-abc.jpg",
+          "category_id": "fe_001",
+          "type": "Bột ABC",
+          "weight": "4kg",
+          "price": "450000",
+          "specifications": {
+            "Loại bột": "ABC",
+            "Trọng lượng": "4kg",
+            "Áp suất": "12-15 bar",
+            "Nhiệt độ sử dụng": "-30°C đến +60°C",
+            "Thời gian phun": "13-15 giây"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_002",
+          "name": "Bình chữa cháy CO2 5kg",
+          "description": "Bình CO2 5kg, màu bạc/đen, phù hợp đám cháy điện. An toàn cho thiết bị điện tử.",
+          "image": "https://pcccbinhan.com.vn/wp-content/uploads/2023/06/binh-dragon-mt5.jpg",
+          "category_id": "fe_001",
+          "type": "CO2",
+          "weight": "5kg",
+          "price": "850000",
+          "specifications": {
+            "Loại": "CO2",
+            "Trọng lượng": "5kg",
+            "Áp suất": "60 bar",
+            "Nhiệt độ sử dụng": "-20°C đến +60°C",
+            "Thời gian phun": "8-10 giây"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_003",
+          "name": "Bình chữa cháy bột khô 6kg",
+          "description": "Bình bột khô 6kg, màu đỏ, dùng cho công nghiệp. Hiệu quả cao với đám cháy lớn.",
+          "image": "https://vinafoam.vn/wp-content/uploads/2023/04/V6-P.jpg",
+          "category_id": "fe_001",
+          "type": "Bột khô",
+          "weight": "6kg",
+          "price": "520000",
+          "specifications": {
+            "Loại bột": "Bột khô",
+            "Trọng lượng": "6kg",
+            "Áp suất": "12-15 bar",
+            "Nhiệt độ sử dụng": "-30°C đến +60°C",
+            "Thời gian phun": "15-18 giây"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        }
+      ]
+    },
+    {
+      "id": "fd_001",
+      "name": "Thiết bị báo cháy",
+      "description": "Hệ thống phát hiện và báo cháy sớm",
+      "icon": "smoke_detector",
+      "products": [
+        {
+          "id": "product_004",
+          "name": "Đầu báo khói",
+          "description": "Đầu báo khói tròn, màu trắng, gắn trần. Phát hiện khói sớm với độ nhạy cao.",
+          "image": "https://thietbicuuhoa.com.vn/images/2019/02/dau-bao-khoi-quang-12vdc-chungmei-cm-wt33lt.jpg",
+          "category_id": "fd_001",
+          "type": "Quang học",
+          "voltage": "12VDC",
+          "price": "280000",
+          "specifications": {
+            "Điện áp": "12VDC",
+            "Dòng điện": "25mA",
+            "Nhiệt độ hoạt động": "-10°C đến +55°C",
+            "Độ ẩm": "10% - 95%",
+            "Phạm vi phát hiện": "20m²"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_005",
+          "name": "Đầu báo nhiệt",
+          "description": "Đầu báo nhiệt, màu trắng, có đèn báo. Kích hoạt khi nhiệt độ vượt ngưỡng.",
+          "image": "https://pcccpnn.com/wp-content/uploads/2020/11/Bao-nhiet-gia-tang.jpg",
+          "category_id": "fd_001",
+          "type": "Nhiệt độ",
+          "voltage": "12VDC",
+          "price": "320000",
+          "specifications": {
+            "Điện áp": "12VDC",
+            "Nhiệt độ kích hoạt": "58°C ± 5°C",
+            "Nhiệt độ hoạt động": "-10°C đến +55°C",
+            "Độ ẩm": "10% - 95%",
+            "Phạm vi phát hiện": "15m²"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_006",
+          "name": "Nút nhấn báo cháy",
+          "description": "Nút nhấn khẩn cấp, màu đỏ, gắn tường. Kích hoạt báo cháy thủ công.",
+          "image": "https://thietbicuuhoa.com.vn/images/2021/12/CM-FP1-510x534.jpg",
+          "category_id": "fd_001",
+          "type": "Thủ công",
+          "voltage": "12VDC",
+          "price": "180000",
+          "specifications": {
+            "Điện áp": "12VDC",
+            "Loại tiếp điểm": "NO/NC",
+            "Vật liệu": "ABS chống cháy",
+            "Màu sắc": "Đỏ",
+            "Kích thước": "86 x 86mm"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hr_001",
+      "name": "Vòi chữa cháy",
+      "description": "Hệ thống vòi và cuộn chữa cháy",
+      "icon": "fire_hose",
+      "products": [
+        {
+          "id": "product_007",
+          "name": "Vòi chữa cháy dài 10m",
+          "description": "Vòi chữa cháy cuộn, dài 10m, màu đỏ. Phù hợp cho tòa nhà và khu công nghiệp.",
+          "image": "https://anphucpccc.com/storage/2021/04/1-15.png",
+          "category_id": "hr_001",
+          "type": "Vòi cuộn",
+          "length": "10m",
+          "price": "1200000",
+          "specifications": {
+            "Chiều dài": "10m",
+            "Đường kính": "25mm",
+            "Áp suất làm việc": "16 bar",
+            "Vật liệu": "Cao su tổng hợp",
+            "Nhiệt độ sử dụng": "-20°C đến +80°C"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_008",
+          "name": "Vòi chữa cháy cuộn vải",
+          "description": "Vòi vải cuộn, màu cam, dùng dân dụng. Nhẹ và dễ sử dụng.",
+          "image": "https://anphucpccc.com/storage/2023/04/2-13.png",
+          "category_id": "hr_001",
+          "type": "Vòi vải",
+          "length": "15m",
+          "price": "850000",
+          "specifications": {
+            "Chiều dài": "15m",
+            "Đường kính": "20mm",
+            "Áp suất làm việc": "10 bar",
+            "Vật liệu": "Vải tráng nhựa",
+            "Trọng lượng": "2.5kg"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_009",
+          "name": "Lăng phun",
+          "description": "Lăng phun kim loại, màu bạc. Tạo tia nước mạnh và hiệu quả.",
+          "image": "https://anphucpccc.com/storage/2021/12/3-1.png",
+          "category_id": "hr_001",
+          "type": "Lăng phun",
+          "material": "Kim loại",
+          "price": "320000",
+          "specifications": {
+            "Vật liệu": "Kim loại mạ kẽm",
+            "Đường kính": "19-25mm",
+            "Áp suất": "2-16 bar",
+            "Tầm xa": "8-12m",
+            "Kiểu phun": "Phun thẳng/Phun mù"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        }
+      ]
+    },
+    {
+      "id": "el_001",
+      "name": "Đèn thoát hiểm",
+      "description": "Hệ thống chiếu sáng khẩn cấp",
+      "icon": "emergency_light",
+      "products": [
+        {
+          "id": "product_010",
+          "name": "Đèn exit",
+          "description": "Đèn exit hình chữ 'EXIT', màu xanh. Chỉ dẫn lối thoát hiểm rõ ràng.",
+          "image": "https://dmtlight.vn/wp-content/uploads/2025/01/Den-Exit-chi-huong-1-mat-loi-thoat-EX-GR-S04-C1-3W1M-LT.png",
+          "category_id": "el_001",
+          "type": "Đèn EXIT",
+          "power": "3W",
+          "price": "450000",
+          "specifications": {
+            "Công suất": "3W",
+            "Điện áp": "220V",
+            "Thời gian sạc": "24h",
+            "Thời gian chiếu sáng": "3h",
+            "Loại đèn": "LED"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_011",
+          "name": "Đèn sạc khẩn cấp",
+          "description": "Đèn sạc cầm tay, màu vàng. Tiện dụng cho việc di chuyển trong bóng tối.",
+          "image": "https://st.meta.vn/Data/image/2020/07/14/den-led-rang-dong-chieu-sang-khan-cap-d-kc02.jpg",
+          "category_id": "el_001",
+          "type": "Đèn cầm tay",
+          "power": "5W",
+          "price": "280000",
+          "specifications": {
+            "Công suất": "5W",
+            "Pin": "4V 2000mAh",
+            "Thời gian sạc": "8-12h",
+            "Thời gian sử dụng": "4-6h",
+            "Loại đèn": "LED"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_012",
+          "name": "Đèn chiếu sáng khẩn cấp",
+          "description": "Đèn trần khẩn cấp, màu trắng. Tự động bật khi mất điện.",
+          "image": "https://pcccsaigon.com/wp-content/uploads/2019/12/B%C6%A1m-ly-t%C3%A2m-1-c%E1%BB%ADa-h%C3%BAt_EU.jpg",
+          "category_id": "el_001",
+          "type": "Đèn trần",
+          "power": "8W",
+          "price": "650000",
+          "specifications": {
+            "Công suất": "8W",
+            "Điện áp": "220V",
+            "Pin": "6V 4500mAh",
+            "Thời gian chiếu sáng": "3h",
+            "Loại đèn": "LED"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pw_001",
+      "name": "Máy bơm chữa cháy",
+      "description": "Hệ thống bơm nước chữa cháy",
+      "icon": "fire_pump",
+      "products": [
+        {
+          "id": "product_013",
+          "name": "Bơm ly tâm",
+          "description": "Bơm ly tâm công nghiệp, màu xám. Cung cấp áp suất nước ổn định.",
+          "image": "https://pcccsaigon.com/wp-content/uploads/2019/12/B%C6%A1m-ly-t%C3%A2m-1-c%E1%BB%ADa-h%C3%BAt_EU.jpg",
+          "category_id": "pw_001",
+          "type": "Ly tâm",
+          "power": "15HP",
+          "price": "25000000",
+          "specifications": {
+            "Công suất": "15HP",
+            "Lưu lượng": "500L/min",
+            "Cột áp": "60m",
+            "Đường kính hút": "100mm",
+            "Đường kính đẩy": "80mm"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_014",
+          "name": "Bơm diesel",
+          "description": "Bơm diesel, màu xanh. Hoạt động độc lập không cần điện lưới.",
+          "image": "https://cuuhoanhanh.com/upload/sanpham/bom-15hp-8483.jpg",
+          "category_id": "pw_001",
+          "type": "Diesel",
+          "power": "15HP",
+          "price": "45000000",
+          "specifications": {
+            "Công suất": "15HP",
+            "Động cơ": "Diesel 4 thì",
+            "Lưu lượng": "600L/min",
+            "Cột áp": "70m",
+            "Tiêu thụ nhiên liệu": "3.5L/h"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        },
+        {
+          "id": "product_015",
+          "name": "Tủ điều khiển",
+          "description": "Tủ điều khiển, màu xám, có nút bấm. Quản lý và giám sát hệ thống bơm.",
+          "image": "https://hahuco.com.vn/uploads/sanpham/tu-dien-phong-chay-chua-chay-3-jpg-202210010931442OC1oJzjCf.jpg",
+          "category_id": "pw_001",
+          "type": "Tủ điều khiển",
+          "voltage": "380V",
+          "price": "18000000",
+          "specifications": {
+            "Điện áp": "380V",
+            "Tần số": "50Hz",
+            "Bảo vệ": "IP65",
+            "Chức năng": "Khởi động/Dừng tự động",
+            "Hiển thị": "LCD 7 inch"
+          },
+          "contact_info": {
+            "phone": "0901234567",
+            "email": "sales@pccc.com"
+          }
+        }
+      ]
+    }
+  ]
+} 

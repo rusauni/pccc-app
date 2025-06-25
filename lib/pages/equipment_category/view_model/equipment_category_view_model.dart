@@ -1,5 +1,6 @@
 import 'package:base_app/pages/base/view_model/base_view_model.dart';
 import 'package:base_app/pages/equipment_category/model/equipment_category_model.dart';
+import 'package:base_app/utils/product_data_loader.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 
 class EquipmentCategoryViewModel extends BaseViewModel {
@@ -15,12 +16,118 @@ class EquipmentCategoryViewModel extends BaseViewModel {
     _loadCategories();
   }
 
-  void _loadCategories() {
+  void _loadCategories() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // Data mẫu cho các danh mục thiết bị PCCC
-    _categories = [
+    try {
+      // Load dữ liệu từ JSON file
+      final dataLoader = ProductDataLoader();
+      _categories = await _loadCategoriesFromJson(dataLoader);
+    } catch (e) {
+      _errorMessage = 'Không thể tải dữ liệu danh mục: ${e.toString()}';
+      _categories = [];
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<List<EquipmentCategory>> _loadCategoriesFromJson(ProductDataLoader dataLoader) async {
+    final jsonData = await dataLoader.loadJsonData();
+    final categories = jsonData['categories'] as List<dynamic>? ?? [];
+    
+    return categories.map<EquipmentCategory>((categoryJson) {
+      final products = categoryJson['products'] as List<dynamic>? ?? [];
+      
+      return EquipmentCategory(
+        id: _mapDataIdToCategoryId(categoryJson['id'] ?? ''),
+        name: categoryJson['name'] ?? '',
+        description: categoryJson['description'] ?? '',
+        iconData: _getIconForCategory(categoryJson['id'] ?? ''),
+        color: _getColorForCategory(categoryJson['id'] ?? ''),
+        subCategories: _createSubCategoriesFromProducts(products),
+      );
+    }).toList();
+  }
+
+  String _mapDataIdToCategoryId(String dataId) {
+    switch (dataId) {
+      case 'fe_001':
+        return 'fire_extinguisher';
+      case 'fd_001':
+        return 'fire_alarm';
+      case 'hr_001':
+        return 'fire_hose';
+      case 'el_001':
+        return 'emergency_light';
+      case 'pw_001':
+        return 'fire_pump';
+      default:
+        return dataId;
+    }
+  }
+
+  String _getIconForCategory(String dataId) {
+    switch (dataId) {
+      case 'fe_001':
+        return 'water_drop';
+      case 'fd_001':
+        return 'notifications';
+      case 'hr_001':
+        return 'water';
+      case 'el_001':
+        return 'lightbulb';
+      case 'pw_001':
+        return 'settings';
+      default:
+        return 'category';
+    }
+  }
+
+  String _getColorForCategory(String dataId) {
+    switch (dataId) {
+      case 'fe_001':
+        return 'red';
+      case 'fd_001':
+        return 'orange';
+      case 'hr_001':
+        return 'blue';
+      case 'el_001':
+        return 'yellow';
+      case 'pw_001':
+        return 'green';
+      default:
+        return 'gray';
+    }
+  }
+
+  List<EquipmentSubCategory> _createSubCategoriesFromProducts(List<dynamic> products) {
+    // Nhóm sản phẩm theo type để tạo subcategories
+    final Map<String, List<dynamic>> groupedProducts = {};
+    
+    for (final product in products) {
+      final type = product['type'] ?? 'Khác';
+      if (!groupedProducts.containsKey(type)) {
+        groupedProducts[type] = [];
+      }
+      groupedProducts[type]!.add(product);
+    }
+
+    return groupedProducts.entries.map((entry) {
+      return EquipmentSubCategory(
+        id: entry.key.toLowerCase().replaceAll(' ', '_'),
+        name: entry.key,
+        description: 'Sản phẩm loại ${entry.key}',
+        productCount: entry.value.length,
+      );
+    }).toList();
+  }
+
+  // Data mẫu cũ - giữ lại để fallback
+  List<EquipmentCategory> _getBackupCategories() {
+    return [
       EquipmentCategory(
         id: 'fire_extinguisher',
         name: 'Bình chữa cháy',
