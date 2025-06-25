@@ -179,9 +179,11 @@ class EditorJSFlutterWidgets {
   // Image block
   static Widget _renderImage(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = ImageBlockData.fromJson(block.data);
-    final url = data.file.url;
+    // Ưu tiên url, nếu không có thì dùng fileURL
+    final originalUrl = data.file.url ?? data.file.fileURL;
+    final processedUrl = _processUrl(originalUrl);
     
-    if (url == null || url.isEmpty) {
+    if (processedUrl.isEmpty) {
       return Padding(
         padding: opts.blockPadding,
         child: Container(
@@ -211,7 +213,7 @@ class EditorJSFlutterWidgets {
     Widget imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
-        url,
+        processedUrl,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
@@ -362,13 +364,14 @@ class EditorJSFlutterWidgets {
   // Embed block
   static Widget _renderEmbed(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = EmbedBlockData.fromJson(block.data);
+    final processedSource = _processUrl(data.source);
     
     // Kiểm tra xem có phải YouTube URL không
     final RegExp youtubeRegex = RegExp(
       r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})',
       caseSensitive: false,
     );
-    final Match? match = youtubeRegex.firstMatch(data.source);
+    final Match? match = youtubeRegex.firstMatch(processedSource);
     
     if (match != null) {
       final String videoId = match.group(1)!;
@@ -382,7 +385,7 @@ class EditorJSFlutterWidgets {
           children: [
             GestureDetector(
               onTap: () async {
-                final Uri youtubeUri = Uri.parse(data.source);
+                final Uri youtubeUri = Uri.parse(processedSource);
                 if (await canLaunchUrl(youtubeUri)) {
                   await launchUrl(youtubeUri, mode: LaunchMode.externalApplication);
                 }
@@ -433,7 +436,7 @@ class EditorJSFlutterWidgets {
       return Padding(
         padding: opts.blockPadding,
         child: VNLButton.outline(
-          onPressed: () => _launchUrl(data.source),
+          onPressed: () => _launchUrl(processedSource),
           child: SizedBox(
             height: 200,
             child: Column(
@@ -542,6 +545,7 @@ class EditorJSFlutterWidgets {
   // LinkTool block - sử dụng VNLCard
   static Widget _renderLinkTool(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = LinkToolBlockData.fromJson(block.data);
+    final processedImageUrl = _processUrl(data.meta.image);
     
     return Padding(
       padding: opts.blockPadding,
@@ -556,11 +560,11 @@ class EditorJSFlutterWidgets {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: data.meta.image != null && data.meta.image!.isNotEmpty
+                child: processedImageUrl.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          data.meta.image!,
+                          processedImageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Icon(Icons.link);
@@ -600,11 +604,14 @@ class EditorJSFlutterWidgets {
   // Attaches block
   static Widget _renderAttaches(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = AttachesBlockData.fromJson(block.data);
+    // Ưu tiên url, nếu không có thì dùng fileURL
+    final originalFileUrl = data.file.url ?? data.file.fileURL;
+    final processedFileUrl = _processUrl(originalFileUrl);
     
     return Padding(
       padding: opts.blockPadding,
       child: VNLButton.outline(
-        onPressed: () => _launchUrl(data.file.url ?? ''),
+        onPressed: () => _launchUrl(processedFileUrl),
         child: Row(
           children: [
             Icon(
@@ -637,13 +644,14 @@ class EditorJSFlutterWidgets {
   // Video block
   static Widget _renderVideo(EditorJSBlock block, EditorJSRenderOptions opts) {
     final data = VideoBlockData.fromJson(block.data);
+    final processedUrl = _processUrl(data.url);
     
     // Kiểm tra xem có phải YouTube URL không
     final RegExp youtubeRegex = RegExp(
       r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})',
       caseSensitive: false,
     );
-    final Match? match = youtubeRegex.firstMatch(data.url);
+    final Match? match = youtubeRegex.firstMatch(processedUrl);
     
     if (match != null) {
       final String videoId = match.group(1)!;
@@ -657,7 +665,7 @@ class EditorJSFlutterWidgets {
           children: [
             GestureDetector(
               onTap: () async {
-                final Uri youtubeUri = Uri.parse(data.url);
+                final Uri youtubeUri = Uri.parse(processedUrl);
                 if (await canLaunchUrl(youtubeUri)) {
                   await launchUrl(youtubeUri, mode: LaunchMode.externalApplication);
                 }
@@ -708,7 +716,7 @@ class EditorJSFlutterWidgets {
       return Padding(
         padding: opts.blockPadding,
         child: VNLButton.outline(
-          onPressed: () => _launchUrl(data.url),
+          onPressed: () => _launchUrl(processedUrl),
           child: SizedBox(
             height: 200,
             child: Column(
@@ -775,6 +783,32 @@ class EditorJSFlutterWidgets {
       default:
         return null;
     }
+  }
+
+  /// Xử lý URL để thêm domain nếu cần thiết
+  static String _processUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    
+    // Kiểm tra xem URL đã là URL hợp lệ chưa (có scheme như http/https)
+    final Uri? uri = Uri.tryParse(url);
+    
+    // Nếu là URL hợp lệ (có scheme) thì trả về nguyên văn
+    if (uri != null && uri.hasScheme) {
+      return url;
+    }
+    
+    // Nếu không phải URL hợp lệ thì thêm domain
+    const String baseDomain = 'https://dashboard.pccc40.com';
+    
+    // Nếu URL đã bắt đầu bằng / thì thêm domain trực tiếp
+    // Ví dụ: "/assets/file-id" → "https://dashboard.pccc40.com/assets/file-id"
+    if (url.startsWith('/')) {
+      return '$baseDomain$url';
+    }
+    
+    // Nếu không có / đầu thì thêm vào assets folder
+    // Ví dụ: "file.jpg" → "https://dashboard.pccc40.com/assets/file.jpg" 
+    return '$baseDomain/assets/$url';
   }
 
   static IconData _getEmbedIcon(String service) {

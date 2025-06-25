@@ -8,6 +8,7 @@ import 'package:base_app/pages/news/view_model/news_page_view_model.dart';
 import 'package:base_app/pages/home/view_controller/tabs/documents_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/videos_tab.dart';
 import 'package:base_app/pages/home/view_controller/tabs/settings_tab.dart';
+import 'package:go_router/go_router.dart';
 
 class NavigatePage extends PageViewController<HomePageViewModel> {
   const NavigatePage({super.key, required super.viewModel});
@@ -34,7 +35,9 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
         ],
         trailing: [
           VNLOutlineButton(
-            onPressed: () {},
+            onPressed: () {
+              context.go('/search');
+            },
             density: ButtonDensity.icon,
             child: const Icon(Icons.search),
           ),

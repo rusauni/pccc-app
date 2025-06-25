@@ -21,6 +21,8 @@ import 'package:base_app/pages/equipment_category/view_controller/equipment_cate
 import 'package:base_app/pages/equipment_category/view_model/equipment_category_page_view_model.dart';
 import 'package:base_app/pages/product_list/view_controller/product_list_page.dart';
 import 'package:base_app/pages/product_list/view_model/product_list_page_view_model.dart';
+import 'package:base_app/pages/search/view_controller/search_page.dart';
+import 'package:base_app/pages/search/view_model/search_page_view_model.dart';
 import 'package:base_app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -102,6 +104,11 @@ class VNLMainAppState extends State<VNLMainApp> {
         return ProductListPage(viewModel: ProductListPageViewModel(categoryId: categoryId));
       },
       name: 'equipment-products',
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => SearchPage(viewModel: SearchPageViewModel()),
+      name: 'search',
     ),
     GoRoute(
       path: '/auth',

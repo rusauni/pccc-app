@@ -529,20 +529,35 @@ class FileData {
   final int? size;
   final String? name;
   final String? extension;
+  final int? width;
+  final int? height;
+  final String? title;
+  final String? fileId;
+  final String? fileURL;
 
   FileData({
     this.url,
     this.size,
     this.name,
     this.extension,
+    this.width,
+    this.height,
+    this.title,
+    this.fileId,
+    this.fileURL,
   });
 
   factory FileData.fromJson(Map<String, dynamic> json) {
     return FileData(
       url: json['url'],
-      size: json['size'],
+      size: json['size'] is String ? int.tryParse(json['size']) : json['size'],
       name: json['name'],
       extension: json['extension'],
+      width: json['width'],
+      height: json['height'],
+      title: json['title'],
+      fileId: json['fileId'],
+      fileURL: json['fileURL'],
     );
   }
 
@@ -552,6 +567,11 @@ class FileData {
     if (size != null) result['size'] = size!;
     if (name != null) result['name'] = name!;
     if (extension != null) result['extension'] = extension!;
+    if (width != null) result['width'] = width!;
+    if (height != null) result['height'] = height!;
+    if (title != null) result['title'] = title!;
+    if (fileId != null) result['fileId'] = fileId!;
+    if (fileURL != null) result['fileURL'] = fileURL!;
     return result;
   }
 }
