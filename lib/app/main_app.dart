@@ -25,6 +25,8 @@ import 'package:base_app/pages/search/view_controller/search_page.dart';
 import 'package:base_app/pages/search/view_model/search_page_view_model.dart';
 import 'package:base_app/pages/theme_setting/view_controller/theme_setting_page.dart';
 import 'package:base_app/pages/theme_setting/view_model/theme_setting_page_view_model.dart';
+import 'package:base_app/pages/account_detail/view_controller/account_detail_page.dart';
+import 'package:base_app/pages/account_detail/view_model/account_detail_page_view_model.dart';
 import 'package:base_app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -80,6 +82,10 @@ class VNLMainAppState extends State<VNLMainApp> {
         path: '/${AppRouterPath.theme}',
         builder: (context, state) => ThemeSettingPage(viewModel: ThemeSettingPageViewModel()),
         name: AppRouterPath.theme),
+    GoRoute(
+        path: '/${AppRouterPath.accountDetail}',
+        builder: (context, state) => AccountDetailPage(viewModel: AccountDetailPageViewModel()),
+        name: AppRouterPath.accountDetail),
     GoRoute(
       path: '/${AppRouterPath.newsDetail}/:newsId',
       builder: (context, state) {

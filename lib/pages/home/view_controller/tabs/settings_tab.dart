@@ -73,7 +73,7 @@ class _SettingsTabState extends State<SettingsTab> {
           icon: BootstrapIcons.person,
           title: 'Tài khoản',
           subtitle: '+84 123 456 789',
-          onTap: () => context.pushNamed(AppRouterPath.login),
+          onTap: () => context.pushNamed(AppRouterPath.accountDetail),
         ),
         Gap(8),
         _buildSettingItem(
