@@ -11,6 +11,7 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
   @override
   Widget buildWidget(BuildContext context) {
     final scrollController = ScrollController();
+    final resultsKey = GlobalKey();
 
     return SafeArea(
       top: false,
@@ -35,12 +36,7 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
                 const Gap(24),
                 
                 // Analysis Button
-                _buildAnalysisButton(context, scrollController),
-                const Gap(24),
-                
-                // Results Display
-                if (viewModel.hasResults)
-                  _buildResultsSection(context),
+                _buildAnalysisButton(context),
               ],
             ),
           ),
@@ -494,27 +490,16 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
     );
   }
 
-  Widget _buildAnalysisButton(BuildContext context, ScrollController scrollController) {
+  Widget _buildAnalysisButton(BuildContext context) {
     return Center(
       child: VNLButton(
         style: ButtonVariance.primary,
         onPressed: viewModel.hasBasicInput && !viewModel.isAnalyzing
             ? () async {
                 await viewModel.analyzeAllSystems();
-                // Auto scroll xuống phần kết quả sau khi phân tích xong
+                // Hiển thị kết quả trong bottom sheet
                 if (viewModel.hasResults) {
-                  // Đợi UI rebuild hoàn tất
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      if (scrollController.hasClients) {
-                        scrollController.animateTo(
-                          scrollController.position.maxScrollExtent,
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    });
-                  });
+                  _showResultsBottomSheet(context);
                 }
               }
             : null,
@@ -536,6 +521,74 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
     );
   }
 
+  void _showResultsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: VNLTheme.of(context).colorScheme.background,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  children: [
+                    const Text(
+                      '🔥 Kết Quả Phân Tích PCCC',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    VNLButton(
+                      style: ButtonVariance.ghost,
+                      onPressed: () => Navigator.pop(context),
+                      child: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Scrollable content
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(20),
+                                     child: Builder(
+                     builder: (context) => _buildResultsSection(context),
+                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildResultsSection(BuildContext context) {
     final requiredSystems = viewModel.getResultsByStatus('required');
     final optionalSystems = viewModel.getResultsByStatus('optional');
@@ -544,15 +597,6 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Kết Quả Phân Tích',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const Gap(16),
-        
         // Summary
         _buildSummaryCard(context),
         const Gap(16),
@@ -605,22 +649,22 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
             children: [
               Expanded(
                 child: _buildSummaryItem(
-                  'Tổng Số Hệ Thống',
-                  '${report['totalSystems'] ?? 0}',
+                  'Tổng Cộng',
+                  '${(report['totalSystems'] as num?)?.toInt() ?? 0}',
                   Colors.blue,
                 ),
               ),
               Expanded(
                 child: _buildSummaryItem(
                   'Bắt Buộc',
-                  '${report['requiredCount'] ?? 0}',
+                  '${(report['requiredCount'] as num?)?.toInt() ?? 0}',
                   Colors.red,
                 ),
               ),
               Expanded(
                 child: _buildSummaryItem(
                   'Khuyến Nghị',
-                  '${report['optionalCount'] ?? 0}',
+                  '${(report['optionalCount'] as num?)?.toInt() ?? 0}',
                   Colors.orange,
                 ),
               ),
@@ -632,21 +676,30 @@ class PCCCCheckView extends BaseView<PCCCCheckViewModel> {
   }
 
   Widget _buildSummaryItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: color,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12),
-        ),
-      ],
+          const Gap(4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
