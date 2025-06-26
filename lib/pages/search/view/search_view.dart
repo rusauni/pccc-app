@@ -292,7 +292,7 @@ class SearchView extends BaseView<SearchViewModel> {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: 0),
       child: VNLCard(
         child: VNLButton.ghost(
           onPressed: () {
@@ -347,35 +347,36 @@ class SearchView extends BaseView<SearchViewModel> {
                         ),
                       ],
                       Gap(8),
-                      Row(
-                        children: [
-                          if (document.fileType != null) ...[
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: VNLTheme.of(context).colorScheme.muted,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                document.fileType!.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            Gap(8),
-                          ],
-                          if (formattedDate.isNotEmpty)
-                            Text(
-                              formattedDate,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: VNLTheme.of(context).colorScheme.mutedForeground,
-                              ),
-                            ),
-                        ],
-                      ),
+                      // Wrap(
+                      //   spacing: 8,
+                      //   runSpacing: 8,
+                      //   crossAxisAlignment: WrapCrossAlignment.center,
+                      //   children: [
+                      //     if (document.fileType != null)
+                      //       Container(
+                      //         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      //         decoration: BoxDecoration(
+                      //           color: VNLTheme.of(context).colorScheme.muted,
+                      //           borderRadius: BorderRadius.circular(4),
+                      //         ),
+                      //         child: Text(
+                      //           document.fileType!.toUpperCase(),
+                      //           style: TextStyle(
+                      //             fontSize: 10,
+                      //             fontWeight: FontWeight.w600,
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     if (formattedDate.isNotEmpty)
+                      //       Text(
+                      //         formattedDate,
+                      //         style: TextStyle(
+                      //           fontSize: 12,
+                      //           color: VNLTheme.of(context).colorScheme.mutedForeground,
+                      //         ),
+                      //       ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),
