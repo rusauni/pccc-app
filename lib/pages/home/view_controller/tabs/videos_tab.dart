@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart' hide ButtonStyle, CircularProgressIndicator, showDialog;
 import 'package:vnl_common_ui/vnl_ui.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import 'video_tab_view_model.dart';
+import 'video_player_widget.dart';
 import '../../../../data/repositories/video_repository.dart';
 import '../../../../data/api_client/base_api_client.dart';
 import '../../../../data/api_client/pccc_environment.dart';
@@ -108,20 +109,12 @@ class _VideosTabState extends State<VideosTab> with TickerProviderStateMixin {
   Future<void> _handleVideoTap(BuildContext context, VideoModel video) async {
     try {
       if (video.link != null && video.link!.isNotEmpty) {
-        final Uri url = Uri.parse(video.link!);
-        
-        // Check if it's a valid URL
-        if (await canLaunchUrl(url)) {
-          await launchUrl(
-            url,
-            mode: LaunchMode.externalApplication,
-          );
-        } else {
-          // Show error using mounted check for proper context
-          if (mounted) {
-            _showErrorSnackBar('Không thể mở link video');
-          }
-        }
+        // Navigate to video player page
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => VideoPlayerWidget(video: video),
+          ),
+        );
       } else {
         // Show message that video has no link
         if (mounted) {
@@ -129,7 +122,7 @@ class _VideosTabState extends State<VideosTab> with TickerProviderStateMixin {
         }
       }
     } catch (e) {
-      // Handle any errors during URL launching
+      // Handle any errors during navigation
       if (mounted) {
         _showErrorSnackBar('Lỗi khi mở video: ${e.toString()}');
       }
