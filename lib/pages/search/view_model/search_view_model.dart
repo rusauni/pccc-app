@@ -4,10 +4,12 @@ import '../../../data/repositories/document_repository.dart';
 import '../../../data/api_client/base_api_client.dart';
 import '../../../data/api_client/pccc_environment.dart';
 import '../model/search_result_model.dart';
+import 'dart:async';
 
 class SearchViewModel extends BaseViewModel {
   final ArticleRepositoryImpl _articleRepository;
   final DocumentRepositoryImpl _documentRepository;
+  Timer? _debounceTimer;
   
   SearchResult _searchResult = SearchResult.empty();
   bool _isLoading = false;
@@ -37,6 +39,27 @@ class SearchViewModel extends BaseViewModel {
     );
   }
 
+  String _removeDiacritics(String str) {
+    var diacriticsMap = {
+      'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a', 'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
+      'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
+      'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
+      'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o', 'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o', 'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
+      'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u', 'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
+      'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
+      'đ': 'd',
+    };
+
+    return str.toLowerCase().split('').map((char) => diacriticsMap[char] ?? char).join('');
+  }
+
+  void searchWithDebounce(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(Duration(milliseconds: 800), () {
+      search(query);
+    });
+  }
+
   Future<void> search(String query) async {
     if (query.trim().isEmpty) {
       _clearResults();
@@ -49,10 +72,11 @@ class SearchViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
-      // Search articles and documents in parallel using filter
+      // Search articles and documents in parallel using filter with diacritics removed
+      final normalizedQuery = _removeDiacritics(query);
       final results = await Future.wait([
-        _searchArticles(query),
-        _searchDocuments(query),
+        _searchArticles(normalizedQuery),
+        _searchDocuments(normalizedQuery),
       ]);
 
       final articles = results[0] as List<SearchArticleItem>;
@@ -78,7 +102,7 @@ class SearchViewModel extends BaseViewModel {
 
   Future<List<SearchArticleItem>> _searchArticles(String query) async {
     try {
-      // Use filter to search articles by title and summary
+      // Use filter to search articles by title and summary with diacritics removed
       final filter = '{"_or":[{"title":{"_icontains":"$query"}},{"summary":{"_icontains":"$query"}}]}';
       
       final response = await _articleRepository.getArticles(
@@ -95,7 +119,7 @@ class SearchViewModel extends BaseViewModel {
           summary: article.summary,
           imageUrl: article.thumbnail,
           dateCreated: article.dateCreated,
-          categoryName: null, // We don't have category name in this response
+          categoryName: null,
         )).toList();
       }
       
@@ -108,7 +132,7 @@ class SearchViewModel extends BaseViewModel {
 
   Future<List<SearchDocumentItem>> _searchDocuments(String query) async {
     try {
-      // Use filter to search documents by title and description  
+      // Use filter to search documents by title and description with diacritics removed
       final filter = '{"_or":[{"title":{"_icontains":"$query"}},{"description":{"_icontains":"$query"}}]}';
       
       final response = await _documentRepository.getDocuments(
@@ -126,7 +150,7 @@ class SearchViewModel extends BaseViewModel {
           fileUrl: document.file,
           fileType: document.file?.split('.').last,
           dateCreated: document.effectiveDate,
-          categoryName: null, // We don't have category name in this response
+          categoryName: null,
         )).toList();
       }
       
@@ -137,10 +161,9 @@ class SearchViewModel extends BaseViewModel {
     }
   }
 
-
-
   void clearSearch() {
     _clearResults();
+    _debounceTimer?.cancel();
   }
 
   void _clearResults() {
@@ -148,5 +171,11 @@ class SearchViewModel extends BaseViewModel {
     _currentQuery = '';
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 } 

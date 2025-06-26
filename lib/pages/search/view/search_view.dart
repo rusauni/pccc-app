@@ -3,7 +3,8 @@ import 'package:base_app/pages/search/view_model/search_view_model.dart';
 import '../model/search_result_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/material.dart' hide ButtonStyle;
+import 'package:flutter/material.dart' as material hide ButtonStyle;
+import 'package:base_app/router/app_router.dart';
 
 class SearchView extends BaseView<SearchViewModel> {
   const SearchView({super.key, required super.viewModel});
@@ -27,7 +28,9 @@ class SearchView extends BaseView<SearchViewModel> {
                 Center(
                   child: Container(
                     padding: EdgeInsets.all(20),
-                    child: Text('Đang tìm kiếm...'),
+                    child: material.CircularProgressIndicator(
+                      color: VNLTheme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               
@@ -36,13 +39,13 @@ class SearchView extends BaseView<SearchViewModel> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
+                    color: material.Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red),
+                    border: Border.all(color: material.Colors.red),
                   ),
                   child: Text(
                     viewModel.errorMessage!,
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(color: material.Colors.red),
                   ),
                 ),
               
@@ -76,31 +79,37 @@ class SearchView extends BaseView<SearchViewModel> {
               
               // No results
               if (!viewModel.hasResults && !viewModel.isLoading && viewModel.currentQuery.isNotEmpty)
-                Container(
-                  padding: EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      Icon(
-                        BootstrapIcons.search,
-                        size: 48,
-                        color: VNLTheme.of(context).colorScheme.mutedForeground,
-                      ),
-                      Gap(16),
-                      Text(
-                        'Không tìm thấy kết quả nào',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Gap(8),
-                      Text(
-                        'Thử tìm kiếm với từ khóa khác',
-                        style: TextStyle(
+                Center(
+                  child: Container(
+                    padding: EdgeInsets.all(32),
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height * 0.5,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          BootstrapIcons.search,
+                          size: 48,
                           color: VNLTheme.of(context).colorScheme.mutedForeground,
                         ),
-                      ),
-                    ],
+                        Gap(16),
+                        Text(
+                          'Không tìm thấy kết quả nào',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Gap(8),
+                        Text(
+                          'Thử tìm kiếm với từ khóa khác',
+                          style: TextStyle(
+                            color: VNLTheme.of(context).colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -126,16 +135,14 @@ class SearchView extends BaseView<SearchViewModel> {
             ),
           ),
           Expanded(
-            child: TextField(
-              decoration: InputDecoration(
+            child: material.TextField(
+              decoration: material.InputDecoration(
                 hintText: 'Tìm kiếm bài viết, tài liệu...',
-                border: InputBorder.none,
+                border: material.InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
-              onSubmitted: (value) {
-                if (value.trim().isNotEmpty) {
-                  viewModel.search(value);
-                }
+              onChanged: (value) {
+                viewModel.searchWithDebounce(value);
               },
             ),
           ),
@@ -297,7 +304,18 @@ class SearchView extends BaseView<SearchViewModel> {
         child: VNLButton.ghost(
           onPressed: () {
             // Navigate to document detail (you'll need to implement this route)
-            print('Navigate to document ${document.id}');
+            final documentModelData = {
+              'title': document.title,
+              'file': document.fileUrl,
+              'fileUrl': document.fileUrl,
+              'effectiveDate': document.dateCreated,
+              'description': document.description,
+            };
+            
+            context.pushNamed(
+              AppRouterPath.pdfViewer,
+              extra: documentModelData,
+            );
           },
           child: Padding(
             padding: EdgeInsets.all(16),
