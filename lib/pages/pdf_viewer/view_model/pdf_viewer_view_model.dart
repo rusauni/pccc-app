@@ -154,6 +154,63 @@ class PdfViewerViewModel extends BaseViewModel {
     }
   }
 
+  Future<void> openPdfFile() async {
+    try {
+      if (_localFilePath == null) {
+        Logger.e('❌ Local file path not set');
+        return;
+      }
+
+      final file = File(_localFilePath!);
+      if (!await file.exists()) {
+        Logger.e('❌ File does not exist: $_localFilePath');
+        _setError('File không tồn tại');
+        return;
+      }
+
+      Logger.i('📄 Attempting to open PDF file: $_localFilePath');
+
+      // Create file URI for different platforms
+      Uri fileUri;
+      if (Platform.isIOS) {
+        // For iOS, use file:// scheme with the exact path
+        fileUri = Uri.file(_localFilePath!);
+        Logger.i('🍎 iOS file URI: $fileUri');
+      } else {
+        // For Android, use file:// scheme
+        fileUri = Uri.file(_localFilePath!);
+        Logger.i('🤖 Android file URI: $fileUri');
+      }
+
+      // Try to launch with external application
+      bool launched = await launchUrl(
+        fileUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        Logger.w('⚠️ Could not open with external app, trying platform default');
+        
+        // Fallback: try with platform default
+        launched = await launchUrl(
+          fileUri,
+          mode: LaunchMode.platformDefault,
+        );
+        
+        if (!launched) {
+          Logger.e('❌ Could not open file with any method');
+          _showPathInfo();
+        }
+      } else {
+        Logger.i('✅ Successfully opened PDF file');
+      }
+
+    } catch (e) {
+      Logger.e('❌ Error opening PDF file: $e');
+      _showPathInfo();
+    }
+  }
+
   Future<void> openDownloadFolder() async {
     try {
       if (_downloadDirectory == null) {

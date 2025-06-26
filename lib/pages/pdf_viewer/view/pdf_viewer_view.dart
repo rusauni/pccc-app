@@ -191,21 +191,43 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
               const Gap(16),
             ],
             
-            // Single button to open download folder
-            SizedBox(
-              width: double.infinity,
-              child: VNLButton(
-                style: ButtonStyle.primary(),
-                onPressed: viewModel.openDownloadFolder,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(BootstrapIcons.folder2Open, size: 18),
-                    const Gap(8),
-                    Text('Mở thư mục chứa file'),
-                  ],
+            // Two buttons: Open file and Open folder
+            Column(
+              children: [
+                // Primary button: Open PDF file
+                SizedBox(
+                  width: double.infinity,
+                  child: VNLButton(
+                    style: ButtonStyle.primary(),
+                    onPressed: viewModel.openPdfFile,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(BootstrapIcons.filePdf, size: 18),
+                        const Gap(8),
+                        Text('Mở file PDF'),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                const Gap(12),
+                // Secondary button: Open folder
+                SizedBox(
+                  width: double.infinity,
+                  child: VNLButton(
+                    style: ButtonStyle.outline(),
+                    onPressed: viewModel.openDownloadFolder,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(BootstrapIcons.folder2Open, size: 18),
+                        const Gap(8),
+                        Text('Mở thư mục chứa file'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
