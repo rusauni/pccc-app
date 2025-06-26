@@ -619,6 +619,7 @@ class NewsView extends BaseView<NewsViewModel> {
     context.goNamed(
       AppRouterPath.newsDetail,
       pathParameters: {'newsId': newsId.toString()},
+      queryParameters: {'from': 'news', 'tab': '1'}, // Save that we came from news tab
     );
   }
 } 

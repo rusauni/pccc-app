@@ -184,8 +184,12 @@ class SearchView extends BaseView<SearchViewModel> {
       child: VNLCard(
         child: VNLButton.ghost(
           onPressed: () {
-            // Navigate to article detail
-            context.go('/news-detail/${article.id}');
+            // Navigate to article detail from search
+            context.goNamed(
+              'news-detail',
+              pathParameters: {'newsId': article.id.toString()},
+              queryParameters: {'from': 'search', 'tab': '2'}, // From search, but assume tab 2 for search context
+            );
           },
           child: Padding(
             padding: EdgeInsets.all(16),

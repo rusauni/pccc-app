@@ -21,6 +21,22 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
   int _selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Try to get tab index from query parameters
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final location = GoRouterState.of(context).uri.toString();
+      final uri = Uri.parse(location);
+      final tabIndex = int.tryParse(uri.queryParameters['tab'] ?? '0') ?? 0;
+      if (tabIndex != _selectedIndex && tabIndex >= 0 && tabIndex <= 4) {
+        setState(() {
+          _selectedIndex = tabIndex;
+        });
+      }
+    });
+  }
+
+  @override
   List<Widget> buildHeaders(BuildContext pageContext) {
     return [
       VNLAppBar(

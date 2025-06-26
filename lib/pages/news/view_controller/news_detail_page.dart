@@ -15,17 +15,17 @@ class NewsDetailPageState extends PageViewControllerState<NewsDetailPage> {
   @override
   List<Widget> buildHeaders(BuildContext pageContext) {
     return [
-      VNLAppBar(
+              VNLAppBar(
         leading: [
           VNLButton.ghost(
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
               } else {
-                // If we can't pop, navigate to news tab instead of home
-                context.go('/home');
-                // Set selected index to news tab (index 1)
-                // This will be handled by the navigate page navigation
+                // If we can't pop, navigate back to home with tab preserved
+                final state = GoRouterState.of(context);
+                final tabIndex = state.uri.queryParameters['tab'] ?? '0';
+                context.go('/home?tab=$tabIndex');
               }
             },
             child: const Icon(Icons.arrow_back),

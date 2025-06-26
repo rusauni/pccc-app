@@ -378,8 +378,12 @@ class _HomeTabState extends State<HomeTab> {
         style: ButtonStyle.ghost(),
         onPressed: () {
           if (news.id != null) {
-            // Navigate to news detail page
-            context.go('/news-detail/${news.id}');
+            // Navigate to news detail page from home tab
+            context.goNamed(
+              'news-detail',
+              pathParameters: {'newsId': news.id.toString()},
+              queryParameters: {'from': 'home', 'tab': '0'}, // Save that we came from home tab
+            );
           }
         },
         child: Padding(
