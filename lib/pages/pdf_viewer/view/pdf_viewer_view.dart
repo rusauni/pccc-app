@@ -18,6 +18,8 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
 
   Widget _buildContent(BuildContext context) {
     switch (viewModel.state) {
+      case DocumentState.initial:
+        return _buildInitialState(context);
       case DocumentState.downloading:
         return _buildDownloadState(context);
       case DocumentState.downloaded:
@@ -25,6 +27,76 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
       case DocumentState.error:
         return _buildErrorState(context);
     }
+  }
+
+  Widget _buildInitialState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: material.Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                BootstrapIcons.filePdf,
+                size: 80,
+                color: material.Colors.blue,
+              ),
+            ),
+            const Gap(24),
+            Text(
+              viewModel.document?.title ?? 'Tài liệu',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Gap(8),
+            if (viewModel.document?.effectiveDate != null) ...[
+              Text(
+                'Ngày hiệu lực: ${viewModel.document!.effectiveDate}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: VNLTheme.of(context).colorScheme.mutedForeground,
+                ),
+              ),
+              const Gap(8),
+            ],
+            const Gap(16),
+            Text(
+              'Nhấn nút bên dưới để tải tài liệu về thiết bị của bạn',
+              style: TextStyle(
+                fontSize: 16,
+                color: VNLTheme.of(context).colorScheme.mutedForeground,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Gap(24),
+            SizedBox(
+              width: double.infinity,
+              child: VNLButton(
+                style: ButtonStyle.primary(),
+                onPressed: viewModel.startDownload,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(BootstrapIcons.download, size: 18),
+                    const Gap(8),
+                    Text('Tải tài liệu'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildDownloadState(BuildContext context) {
@@ -156,35 +228,35 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          BootstrapIcons.folder2,
-                          size: 16,
-                          color: VNLTheme.of(context).colorScheme.mutedForeground,
-                        ),
-                        const Gap(8),
-                        Text(
-                          'Đường dẫn:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: VNLTheme.of(context).colorScheme.mutedForeground,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Gap(4),
-                    Text(
-                      viewModel.downloadDirectory!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontFamily: 'monospace',
-                        color: VNLTheme.of(context).colorScheme.mutedForeground,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    // Row(
+                    //   children: [
+                    //     Icon(
+                    //       BootstrapIcons.folder2,
+                    //       size: 16,
+                    //       color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    //     ),
+                    //     const Gap(8),
+                    //     Text(
+                    //       'Đường dẫn:',
+                    //       style: TextStyle(
+                    //         fontSize: 12,
+                    //         fontWeight: FontWeight.w500,
+                    //         color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    // const Gap(4),
+                    // Text(
+                    //   viewModel.downloadDirectory!,
+                    //   style: TextStyle(
+                    //     fontSize: 11,
+                    //     fontFamily: 'monospace',
+                    //     color: VNLTheme.of(context).colorScheme.mutedForeground,
+                    //   ),
+                    //   maxLines: 3,
+                    //   overflow: TextOverflow.ellipsis,
+                    // ),
                   ],
                 ),
               ),
@@ -195,27 +267,27 @@ class PdfViewerView extends BaseView<PdfViewerViewModel> {
             Column(
               children: [
                 // Primary button: Open PDF file
-                SizedBox(
-                  width: double.infinity,
-                  child: VNLButton(
-                    style: ButtonStyle.primary(),
-                    onPressed: viewModel.openPdfFile,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(BootstrapIcons.filePdf, size: 18),
-                        const Gap(8),
-                        Text('Mở file PDF'),
-                      ],
-                    ),
-                  ),
-                ),
-                const Gap(12),
+                // SizedBox(
+                //   width: double.infinity,
+                //   child: VNLButton(
+                //     style: ButtonStyle.primary(),
+                //     onPressed: viewModel.openPdfFile,
+                //     child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.center,
+                //       children: [
+                //         Icon(BootstrapIcons.filePdf, size: 18),
+                //         const Gap(8),
+                //         Text('Mở file PDF'),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+                // const Gap(12),
                 // Secondary button: Open folder
                 SizedBox(
                   width: double.infinity,
                   child: VNLButton(
-                    style: ButtonStyle.outline(),
+                    style: ButtonStyle.primary(),
                     onPressed: viewModel.openDownloadFolder,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

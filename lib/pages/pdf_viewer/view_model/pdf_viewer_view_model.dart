@@ -10,12 +10,12 @@ import 'package:gtd_helper/helper/gtd_app_logger.dart';
 import 'dart:io';
 import 'package:vnl_common_ui/vnl_ui.dart';
 
-enum DocumentState { downloading, downloaded, error }
+enum DocumentState { initial, downloading, downloaded, error }
 
 class PdfViewerViewModel extends BaseViewModel {
   final FileRepository _fileRepository;
   
-  DocumentState _state = DocumentState.downloading;
+  DocumentState _state = DocumentState.initial;
   double _downloadProgress = 0.0;
   String? _errorMessage;
   String? _localFilePath;
@@ -62,25 +62,39 @@ class PdfViewerViewModel extends BaseViewModel {
         }
       }
 
-      Logger.i('📁 Using file ID: $fileId');
-      
-      // Get file metadata from API
-      final fileModel = await _fileRepository.getFileById(fileId);
-      
-      if (fileModel != null) {
-        Logger.i('📊 File metadata: ${fileModel.filenameDownload}, ${fileModel.type}');
-        
-        // Download file with proper filename
-        await _downloadFile(fileId, fileModel.filenameDownload ?? '${fileModel.id}${fileModel.extension}');
-      } else {
-        Logger.e('❌ Failed to get file metadata');
-        _setError('Không thể lấy thông tin file');
-      }
+      _setState(DocumentState.initial);
       
     } catch (e, stackTrace) {
       Logger.e('❌ Error initializing PDF viewer: $e');
       Logger.e('📍 Stack trace: $stackTrace');
       _setError('Lỗi khởi tạo: ${e.toString()}');
+    }
+  }
+
+  Future<void> startDownload() async {
+    try {
+      if (_document == null) {
+        _setError('Không có thông tin tài liệu');
+        return;
+      }
+
+      String? fileId = _document!.url;
+      if (fileId.startsWith('http')) {
+        fileId = UrlHelper.extractFileIdFromUrl(fileId);
+      }
+
+      if (fileId != null) {
+        final fileModel = await _fileRepository.getFileById(fileId);
+        if (fileModel != null) {
+          await _downloadFile(fileId, fileModel.filenameDownload ?? '${fileModel.id}${fileModel.extension}');
+        } else {
+          _setError('Không thể lấy thông tin file');
+        }
+      } else {
+        _setError('Không thể trích xuất file ID');
+      }
+    } catch (e) {
+      _setError('Lỗi bắt đầu tải: ${e.toString()}');
     }
   }
 
