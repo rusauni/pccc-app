@@ -53,7 +53,7 @@ class NewsView extends BaseView<NewsViewModel> {
           children: [
             // Breaking News Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Text(
                 'Tin tức nổi bật trong tuần',
                 style: TextStyle(
@@ -253,6 +253,18 @@ class NewsView extends BaseView<NewsViewModel> {
   }
 
   List<Widget> _buildNewsListItems(BuildContext context) {
+    // Hiển thị loading indicator khi đang load category
+    if (viewModel.isLoadingCategory) {
+      return [
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.all(40),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ];
+    }
+
     if (viewModel.newsList.length <= 1) {
       return [
         Center(

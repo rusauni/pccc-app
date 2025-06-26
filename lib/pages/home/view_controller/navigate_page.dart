@@ -27,10 +27,32 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
         title: const Text('An Toàn PCCC'),
         subtitle: const Text('Quản lý phòng cháy chữa cháy'),
         leading: [
-          VNLOutlineButton(
-            onPressed: () {},
-            density: ButtonDensity.icon,
-            child: const Icon(Icons.menu),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/appicon/appicon.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: VNLTheme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.local_fire_department,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
         ],
         trailing: [
@@ -40,11 +62,6 @@ class NavigatePageState extends PageViewControllerState<NavigatePage> {
             },
             density: ButtonDensity.icon,
             child: const Icon(Icons.search),
-          ),
-          VNLOutlineButton(
-            onPressed: () {},
-            density: ButtonDensity.icon,
-            child: const Icon(Icons.add),
           ),
         ],
       ),

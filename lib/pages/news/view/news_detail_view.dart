@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide ButtonStyle, CircularProgressIndicat
 import 'package:base_app/pages/base/view/base_view.dart';
 import 'package:base_app/pages/news/view_model/news_detail_view_model.dart';
 import 'package:vnl_common_ui/vnl_ui.dart';
+import 'package:share_plus/share_plus.dart';
 import '../model/news_model.dart';
 import '../../../utils/editor_js_parser/editor_js_parser.dart';
 import '../../../utils/editor_js_parser/editor_js_flutter_widgets.dart';
@@ -169,7 +170,7 @@ class NewsDetailView extends BaseView<NewsDetailViewModel> {
                     ),
                   ),
                   VNLButton.ghost(
-                    onPressed: () => _shareNews(news),
+                    onPressed: () => _shareNews(context, news),
                     child: const Icon(Icons.share_outlined),
                   ),
                 ],
@@ -391,37 +392,17 @@ class NewsDetailView extends BaseView<NewsDetailViewModel> {
             const Gap(16),
           ],
 
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: VNLButton.outline(
-                  onPressed: () => _shareNews(news),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.share_outlined, size: 18),
-                      Gap(8),
-                      Text('Chia sẻ'),
-                    ],
-                  ),
-                ),
-              ),
-              const Gap(12),
-              Expanded(
-                child: VNLButton.outline(
-                  onPressed: () => _bookmarkNews(news),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bookmark_border_outlined, size: 18),
-                      Gap(8),
-                      Text('Lưu'),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          // Action buttons (chỉ hiển thị nút chia sẻ, ẩn bookmark)
+          VNLButton.outline(
+            onPressed: () => _shareNews(context, news),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.share_outlined, size: 18),
+                Gap(8),
+                Text('Chia sẻ'),
+              ],
+            ),
           ),
 
           const Gap(32),
@@ -451,11 +432,37 @@ class NewsDetailView extends BaseView<NewsDetailViewModel> {
     }
   }
 
-  void _shareNews(NewsModel news) {
-    debugPrint('Sharing news: ${news.title}');
-  }
-
-  void _bookmarkNews(NewsModel news) {
-    debugPrint('Bookmarking news: ${news.title}');
+  void _shareNews(BuildContext context, NewsModel news) {
+    try {
+      // Build share URL: https://pccc40.com/ + category_slug/ + article_slug
+      String shareUrl = 'https://pccc40.com/';
+      
+      // Add category slug from viewModel if available
+      if (viewModel.categorySlug != null && viewModel.categorySlug!.isNotEmpty) {
+        shareUrl += '${viewModel.categorySlug!}/';
+      } else if (news.category?.slug != null && news.category!.slug.isNotEmpty) {
+        // Fallback to news category slug
+        shareUrl += '${news.category!.slug}/';
+      }
+      
+      // Add article slug if available
+      if (news.slug != null && news.slug!.isNotEmpty) {
+        shareUrl += news.slug!;
+      } else {
+        // Fallback to using article ID if no slug
+        shareUrl += 'article-' + news.id.toString();
+      }
+      
+      // Share only URL
+      Share.share(
+        shareUrl,
+        subject: '📰 ${news.title} - An Toàn PCCC',
+        sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+      );
+      
+      debugPrint('Shared: $shareUrl');
+    } catch (e) {
+      debugPrint('Error sharing news: $e');
+    }
   }
 } 

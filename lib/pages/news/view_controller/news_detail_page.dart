@@ -22,8 +22,10 @@ class NewsDetailPageState extends PageViewControllerState<NewsDetailPage> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                // If we can't pop, navigate to home instead
+                // If we can't pop, navigate to news tab instead of home
                 context.go('/home');
+                // Set selected index to news tab (index 1)
+                // This will be handled by the navigate page navigation
               }
             },
             child: const Icon(Icons.arrow_back),

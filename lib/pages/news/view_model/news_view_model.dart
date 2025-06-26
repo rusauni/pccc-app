@@ -17,6 +17,7 @@ class NewsViewModel extends BaseViewModel {
   List<NewsCategoryModel> _categories = [];
   String _selectedCategoryId = 'all';
   bool _isLoading = false;
+  bool _isLoadingCategory = false; // Loading state riêng cho category
   String? _errorMessage;
 
   List<NewsModel> get newsList => _filteredNewsList;
@@ -24,6 +25,7 @@ class NewsViewModel extends BaseViewModel {
   List<NewsCategoryModel> get categories => _categories;
   String get selectedCategoryId => _selectedCategoryId;
   bool get isLoading => _isLoading;
+  bool get isLoadingCategory => _isLoadingCategory; // Getter cho category loading
   String? get errorMessage => _errorMessage;
 
   NewsViewModel({
@@ -46,17 +48,20 @@ class NewsViewModel extends BaseViewModel {
       if (categoriesResponse.isSuccess && categoriesResponse.data != null) {
         final apiCategories = categoriesResponse.data!.data;
         
-        // Filter out video and document categories since they have separate tabs
+        // Filter out video, document and legal document categories since they have separate tabs
         final filteredCategories = apiCategories.where((category) {
           final categoryName = category.name.toLowerCase();
           final categorySlug = (category.slug ?? '').toLowerCase();
           
-          // Exclude video and tài liệu categories
+          // Exclude video, tài liệu, and văn bản pháp quy categories
           return !categoryName.contains('video') && 
                  !categoryName.contains('tài liệu') &&
                  !categoryName.contains('tai lieu') &&
+                 !categoryName.contains('văn bản pháp quy') &&
+                 !categoryName.contains('van ban phap quy') &&
                  !categorySlug.contains('video') &&
                  !categorySlug.contains('tai-lieu') &&
+                 !categorySlug.contains('van-ban-phap-quy') &&
                  !categorySlug.contains('document');
         }).toList();
         
@@ -211,7 +216,13 @@ class NewsViewModel extends BaseViewModel {
 
   void selectCategory(String categoryId) {
     _selectedCategoryId = categoryId;
-    _filterNews();
+    if (categoryId == 'all') {
+      // Tab "Tất cả" - giữ như hiện tại, filter từ _newsList đã có
+      _filterNews();
+    } else {
+      // Tab category khác - load API theo slug
+      _loadArticlesByCategory(categoryId);
+    }
     notifyListeners();
   }
 
@@ -222,6 +233,64 @@ class NewsViewModel extends BaseViewModel {
       _filteredNewsList = _newsList.where((news) {
         return news.categoryId?.toString() == _selectedCategoryId;
       }).toList();
+    }
+  }
+
+  Future<void> _loadArticlesByCategory(String categoryId) async {
+    _isLoadingCategory = true;
+    notifyListeners();
+
+    try {
+      // Find category by id to get its slug
+      final selectedCategory = _categories.firstWhere(
+        (cat) => cat.id == categoryId,
+        orElse: () => NewsCategoryModel(id: categoryId, name: '', slug: ''),
+      );
+
+      if (selectedCategory.slug.isEmpty || selectedCategory.slug == 'all') {
+        // Fallback to filter existing news if no slug
+        _filterNews();
+        return;
+      }
+
+      // Load articles by category using filter with category ID
+      final articlesResponse = await _articleRepository.getArticles(
+        filter: '{"category":{"_eq":$categoryId}}',
+        limit: 50,
+        sort: ['-date_created'],
+      );
+
+      Logger.i('Articles by category response: ${articlesResponse.isSuccess}');
+      Logger.i('Articles by category count: ${articlesResponse.data?.data.length ?? 0}');
+
+      if (articlesResponse.isSuccess && articlesResponse.data != null) {
+        final apiArticles = articlesResponse.data!.data;
+        _filteredNewsList = apiArticles.map((article) => NewsModel(
+          id: article.id,
+          title: article.title,
+          summary: article.summary ?? '',
+          content: article.content ?? '',
+          thumbnail: article.thumbnail,
+          dateCreated: article.dateCreated,
+          categoryId: article.categoryId,
+          slug: article.slug,
+          tags: article.tags,
+        )).toList();
+        
+        Logger.i('Successfully loaded ${_filteredNewsList.length} articles for category ${selectedCategory.name}');
+        _errorMessage = null;
+      } else {
+        Logger.e('Failed to load articles by category from API: ${articlesResponse.error?.error.message}');
+        _errorMessage = 'Không thể tải tin tức cho danh mục này';
+        _filteredNewsList = [];
+      }
+    } catch (e, stackTrace) {
+      Logger.e('Error loading articles by category: $e\nStackTrace: $stackTrace');
+      _errorMessage = 'Lỗi khi tải tin tức: ${e.toString()}';
+      _filteredNewsList = [];
+    } finally {
+      _isLoadingCategory = false;
+      notifyListeners();
     }
   }
 

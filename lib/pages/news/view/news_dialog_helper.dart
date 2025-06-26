@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide ButtonStyle, showDialog;
 import 'package:vnl_common_ui/vnl_ui.dart';
+import 'package:share_plus/share_plus.dart';
 import '../model/news_model.dart';
 
 class NewsDialogHelper {
@@ -135,9 +136,7 @@ class NewsDialogHelper {
                      children: [
                        Expanded(
                          child: VNLButton.outline(
-                           onPressed: () {
-                             debugPrint('Sharing news: ${news.title}');
-                           },
+                           onPressed: () => _shareNews(context, news),
                            child: const Row(
                              mainAxisAlignment: MainAxisAlignment.center,
                              children: [
@@ -173,6 +172,37 @@ class NewsDialogHelper {
       return '${date.day}/${date.month}/${date.year}';
     } catch (e) {
       return dateString;
+    }
+  }
+
+  static void _shareNews(BuildContext context, NewsModel news) {
+    try {
+      // Build share URL: https://pccc40.com/ + category_slug/ + article_slug
+      String shareUrl = 'https://pccc40.com/';
+      
+      // Add category slug if available (dialog doesn't have viewModel, use news category)
+      if (news.category?.slug != null && news.category!.slug.isNotEmpty) {
+        shareUrl += '${news.category!.slug!}/';
+      }
+      
+      // Add article slug if available
+      if (news.slug != null && news.slug!.isNotEmpty) {
+        shareUrl += news.slug!;
+      } else {
+        // Fallback to using article ID if no slug
+        shareUrl += 'article-' + news.id.toString();
+      }
+      
+      // Share only URL
+      Share.share(
+        shareUrl,
+        subject: '📰 ${news.title} - An Toàn PCCC',
+        sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+      );
+      
+      debugPrint('Shared: $shareUrl');
+    } catch (e) {
+      debugPrint('Error sharing news: $e');
     }
   }
 } 
