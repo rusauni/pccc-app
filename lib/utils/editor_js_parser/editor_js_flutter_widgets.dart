@@ -792,8 +792,12 @@ class EditorJSFlutterWidgets {
     // Kiểm tra xem URL đã là URL hợp lệ chưa (có scheme như http/https)
     final Uri? uri = Uri.tryParse(url);
     
-    // Nếu là URL hợp lệ (có scheme) thì trả về nguyên văn
+    // Nếu là URL hợp lệ (có scheme)
     if (uri != null && uri.hasScheme) {
+      // Kiểm tra nếu là domain canhsatpccc.gov.vn thì dùng proxy
+      if (uri.host == 'canhsatpccc.gov.vn') {
+        return 'https://images.weserv.nl/?url=${Uri.encodeFull(url)}&output=webp&q=80';
+      }
       return url;
     }
     
